@@ -1,0 +1,126 @@
+# Example Terraform Variables for dev-nexus
+# Copy this file to terraform.tfvars and fill in your values
+
+# ====================================
+# REQUIRED: Basic Configuration
+# ====================================
+
+project_id = "your-gcp-project-id"
+region     = "us-central1"
+
+# GitHub token with repo access
+# Get from: https://github.com/settings/tokens
+# Required scopes: repo
+github_token = "ghp_xxxxxxxxxxxxxxxxxxxxx"
+
+# Anthropic API key
+# Get from: https://console.anthropic.com
+anthropic_api_key = "sk-ant-xxxxxxxxxxxxxxxxxxxxx"
+
+# Knowledge base repository (format: owner/repo)
+knowledge_base_repo = "your-username/dev-nexus"
+
+# ====================================
+# Cloud Run Configuration
+# ====================================
+
+# Resource allocation
+cpu    = "1"      # Options: "1", "2", "4", "8"
+memory = "1Gi"    # Examples: "512Mi", "1Gi", "2Gi", "4Gi"
+
+# CPU always allocated (prevents cold starts but increases cost)
+cpu_always_allocated = false
+
+# Scaling configuration
+min_instances = 0   # 0 = scale to zero (cost-effective)
+max_instances = 10  # Maximum concurrent instances
+
+# Request timeout (seconds, max 3600)
+timeout_seconds = 300  # 5 minutes
+
+# ====================================
+# Security Configuration
+# ====================================
+
+# Allow unauthenticated access (NOT recommended for production)
+# Set to false and use service accounts for production
+allow_unauthenticated = false
+
+# Service accounts allowed to authenticate (when allow_unauthenticated = false)
+# Example:
+# allowed_service_accounts = [
+#   "log-attacker@your-project.iam.gserviceaccount.com",
+#   "orchestrator@your-project.iam.gserviceaccount.com"
+# ]
+allowed_service_accounts = []
+
+# Create service accounts for external agents
+# Set to true to auto-create service accounts for log-attacker and orchestrator
+create_external_service_accounts = false
+
+# ====================================
+# Integration Configuration (Optional)
+# ====================================
+
+# URL of dependency-orchestrator service
+# Leave empty if not using orchestrator
+orchestrator_url = ""
+# Example: "https://dependency-orchestrator-xxxxx.run.app"
+
+# URL of agentic-log-attacker service
+# Leave empty if not using log-attacker
+log_attacker_url = ""
+# Example: "https://log-attacker-xxxxx.run.app"
+
+# ====================================
+# Monitoring Configuration (Optional)
+# ====================================
+
+# Enable Cloud Monitoring alerts
+enable_monitoring_alerts = false
+
+# Notification channels (create in Cloud Console first)
+# Get channel IDs from: gcloud alpha monitoring channels list
+alert_notification_channels = []
+# Example:
+# alert_notification_channels = [
+#   "projects/your-project/notificationChannels/1234567890"
+# ]
+
+# Alert thresholds
+error_rate_threshold  = 5.0    # Percentage (%)
+latency_threshold_ms  = 5000   # Milliseconds
+
+# ====================================
+# Labels (Optional)
+# ====================================
+
+labels = {
+  application = "dev-nexus"
+  managed_by  = "terraform"
+  environment = "production"
+  team        = "platform"
+}
+
+# ====================================
+# Example Configurations
+# ====================================
+
+# Development Environment:
+# - allow_unauthenticated = true
+# - min_instances = 0
+# - cpu = "1", memory = "1Gi"
+
+# Staging Environment:
+# - allow_unauthenticated = false
+# - min_instances = 0
+# - cpu = "1", memory = "2Gi"
+# - create_external_service_accounts = true
+
+# Production Environment:
+# - allow_unauthenticated = false
+# - min_instances = 1 (no cold starts)
+# - cpu = "2", memory = "2Gi"
+# - cpu_always_allocated = true
+# - enable_monitoring_alerts = true
+# - create_external_service_accounts = true
