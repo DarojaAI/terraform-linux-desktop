@@ -129,6 +129,12 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
     timeout = "${var.timeout_seconds}s"
 
+    # VPC connector for PostgreSQL access
+    vpc_access {
+      connector = google_vpc_access_connector.postgres_connector.id
+      egress    = "PRIVATE_RANGES_ONLY"
+    }
+
     containers {
       image = "gcr.io/${var.project_id}/pattern-discovery-agent:latest"
 
@@ -183,6 +189,47 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
             version = "latest"
           }
         }
+      }
+
+      # PostgreSQL connection settings
+      env {
+        name  = "DATABASE_URL"
+        value = "postgresql://${var.postgres_db_user}@${google_compute_address.postgres_ip.address}:5432/${var.postgres_db_name}"
+      }
+
+      env {
+        name  = "POSTGRES_HOST"
+        value = google_compute_address.postgres_ip.address
+      }
+
+      env {
+        name  = "POSTGRES_PORT"
+        value = "5432"
+      }
+
+      env {
+        name  = "POSTGRES_DB"
+        value = var.postgres_db_name
+      }
+
+      env {
+        name  = "POSTGRES_USER"
+        value = var.postgres_db_user
+      }
+
+      env {
+        name = "POSTGRES_PASSWORD"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.postgres_password.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name  = "USE_POSTGRESQL"
+        value = "true"
       }
 
       # Optional: External agent URLs

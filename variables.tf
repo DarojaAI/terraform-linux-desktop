@@ -186,3 +186,93 @@ variable "labels" {
     environment = "production"
   }
 }
+
+# ====================================
+# PostgreSQL Configuration
+# ====================================
+
+variable "postgres_machine_type" {
+  description = "Machine type for PostgreSQL VM (e2-micro for free tier)"
+  type        = string
+  default     = "e2-micro"
+
+  validation {
+    condition     = contains(["e2-micro", "e2-small", "e2-medium", "n1-standard-1"], var.postgres_machine_type)
+    error_message = "Machine type must be e2-micro (free), e2-small, e2-medium, or n1-standard-1."
+  }
+}
+
+variable "postgres_disk_size_gb" {
+  description = "Disk size for PostgreSQL in GB (30 GB free tier)"
+  type        = number
+  default     = 30
+
+  validation {
+    condition     = var.postgres_disk_size_gb >= 10 && var.postgres_disk_size_gb <= 500
+    error_message = "Disk size must be between 10 and 500 GB."
+  }
+}
+
+variable "postgres_version" {
+  description = "PostgreSQL major version"
+  type        = string
+  default     = "15"
+
+  validation {
+    condition     = contains(["14", "15", "16"], var.postgres_version)
+    error_message = "PostgreSQL version must be 14, 15, or 16."
+  }
+}
+
+variable "postgres_db_name" {
+  description = "PostgreSQL database name"
+  type        = string
+  default     = "devnexus"
+}
+
+variable "postgres_db_user" {
+  description = "PostgreSQL database user"
+  type        = string
+  default     = "devnexus"
+}
+
+variable "postgres_db_password" {
+  description = "PostgreSQL database password"
+  type        = string
+  sensitive   = true
+}
+
+variable "postgres_subnet_cidr" {
+  description = "CIDR range for PostgreSQL subnet"
+  type        = string
+  default     = "10.8.0.0/24"
+}
+
+variable "vpc_connector_cidr" {
+  description = "CIDR range for VPC connector (must be /28)"
+  type        = string
+  default     = "10.8.1.0/28"
+}
+
+variable "allow_ssh_from_cidrs" {
+  description = "List of CIDR ranges allowed to SSH to PostgreSQL VM"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]  # Restrict in production!
+}
+
+variable "backup_retention_days" {
+  description = "Number of days to retain PostgreSQL backups"
+  type        = number
+  default     = 30
+
+  validation {
+    condition     = var.backup_retention_days >= 7 && var.backup_retention_days <= 365
+    error_message = "Backup retention must be between 7 and 365 days."
+  }
+}
+
+variable "enable_postgres_monitoring" {
+  description = "Enable Cloud Monitoring for PostgreSQL"
+  type        = bool
+  default     = true
+}

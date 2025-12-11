@@ -103,6 +103,41 @@ labels = {
 }
 
 # ====================================
+# PostgreSQL Configuration
+# ====================================
+
+# PostgreSQL database password (REQUIRED - keep secure!)
+postgres_db_password = "your-secure-password-here"
+
+# Database configuration
+postgres_db_name = "devnexus"
+postgres_db_user = "devnexus"
+
+# PostgreSQL version (14, 15, or 16)
+postgres_version = "15"
+
+# VM configuration (e2-micro is FREE tier eligible!)
+postgres_machine_type = "e2-micro"  # Options: e2-micro (FREE), e2-small, e2-medium, n1-standard-1
+
+# Disk size (30 GB is free tier eligible)
+postgres_disk_size_gb = 30
+
+# Network configuration
+postgres_subnet_cidr = "10.8.0.0/24"
+vpc_connector_cidr   = "10.8.1.0/28"  # Must be /28 for VPC connector
+
+# SSH access (IMPORTANT: Restrict in production!)
+# For production, use: ["YOUR_IP/32"]
+# For development, can use: ["0.0.0.0/0"]
+allow_ssh_from_cidrs = ["0.0.0.0/0"]
+
+# Backup retention (days)
+backup_retention_days = 30
+
+# Enable monitoring for PostgreSQL
+enable_postgres_monitoring = true
+
+# ====================================
 # Example Configurations
 # ====================================
 
@@ -110,12 +145,14 @@ labels = {
 # - allow_unauthenticated = true
 # - min_instances = 0
 # - cpu = "1", memory = "1Gi"
+# - postgres_machine_type = "e2-micro" (FREE!)
 
 # Staging Environment:
 # - allow_unauthenticated = false
 # - min_instances = 0
 # - cpu = "1", memory = "2Gi"
 # - create_external_service_accounts = true
+# - postgres_machine_type = "e2-micro"
 
 # Production Environment:
 # - allow_unauthenticated = false
@@ -124,3 +161,22 @@ labels = {
 # - cpu_always_allocated = true
 # - enable_monitoring_alerts = true
 # - create_external_service_accounts = true
+# - postgres_machine_type = "e2-small" or "e2-medium"
+# - allow_ssh_from_cidrs = ["YOUR_OFFICE_IP/32"]
+
+# ====================================
+# Cost Optimization Notes
+# ====================================
+
+# FREE Tier Configuration (≈$0/month):
+# - postgres_machine_type = "e2-micro" (1 vCPU, 1GB RAM)
+# - postgres_disk_size_gb = 30 (standard persistent disk)
+# - region = "us-west1", "us-central1", or "us-east1"
+# - Cloud Run: min_instances = 0 (scale to zero)
+#
+# This configuration uses GCP Always Free tier:
+# - 1 e2-micro instance per month
+# - 30 GB standard persistent disk
+# - Cloud Run free tier (2M requests/month)
+#
+# Expected cost: $0-5/month

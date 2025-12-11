@@ -115,19 +115,62 @@ output "external_agent_config" {
 }
 
 # ====================================
+# PostgreSQL Outputs
+# ====================================
+
+output "postgres_internal_ip" {
+  description = "Internal IP address of PostgreSQL VM"
+  value       = google_compute_address.postgres_ip.address
+}
+
+output "postgres_instance_name" {
+  description = "Name of the PostgreSQL VM instance"
+  value       = google_compute_instance.postgres.name
+}
+
+output "postgres_zone" {
+  description = "Zone where PostgreSQL VM is deployed"
+  value       = google_compute_instance.postgres.zone
+}
+
+output "postgres_connection_string" {
+  description = "PostgreSQL connection string (password redacted)"
+  value       = "postgresql://${var.postgres_db_user}:****@${google_compute_address.postgres_ip.address}:5432/${var.postgres_db_name}"
+  sensitive   = false
+}
+
+output "postgres_backup_bucket" {
+  description = "Cloud Storage bucket for PostgreSQL backups"
+  value       = google_storage_bucket.postgres_backups.name
+}
+
+output "vpc_connector_name" {
+  description = "Name of the VPC connector for Cloud Run to PostgreSQL"
+  value       = google_vpc_access_connector.postgres_connector.name
+}
+
+output "postgres_ssh_command" {
+  description = "Command to SSH into PostgreSQL VM"
+  value       = "gcloud compute ssh ${google_compute_instance.postgres.name} --zone=${google_compute_instance.postgres.zone} --project=${var.project_id}"
+}
+
+# ====================================
 # Summary
 # ====================================
 
 output "deployment_summary" {
   description = "Summary of the deployment"
   value = {
-    service_url     = google_cloud_run_v2_service.pattern_discovery_agent.uri
-    region          = var.region
-    authentication  = var.allow_unauthenticated ? "Public (unauthenticated)" : "Private (authenticated)"
-    min_instances   = var.min_instances
-    max_instances   = var.max_instances
-    cpu             = var.cpu
-    memory          = var.memory
-    knowledge_base  = var.knowledge_base_repo
+    service_url       = google_cloud_run_v2_service.pattern_discovery_agent.uri
+    region            = var.region
+    authentication    = var.allow_unauthenticated ? "Public (unauthenticated)" : "Private (authenticated)"
+    min_instances     = var.min_instances
+    max_instances     = var.max_instances
+    cpu               = var.cpu
+    memory            = var.memory
+    knowledge_base    = var.knowledge_base_repo
+    database          = "PostgreSQL ${var.postgres_version} with pgvector"
+    database_location = "${google_compute_instance.postgres.zone} (${google_compute_address.postgres_ip.address})"
+    backup_bucket     = google_storage_bucket.postgres_backups.name
   }
 }
