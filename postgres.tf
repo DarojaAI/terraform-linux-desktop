@@ -267,7 +267,7 @@ resource "google_monitoring_dashboard" "postgres" {
               dataSets = [{
                 timeSeriesQuery = {
                   timeSeriesFilter = {
-                    filter = "resource.type=\"gce_instance\" AND resource.labels.instance_id=\"${google_compute_instance.postgres.instance_id}\""
+filter = "metric.type=\"compute.googleapis.com/instance/cpu/utilization\" AND resource.type=\"gce_instance\" AND resource.labels.instance_id=\"${google_compute_instance.postgres.instance_id}\""
                     aggregation = {
                       alignmentPeriod  = "60s"
                       perSeriesAligner = "ALIGN_MEAN"
@@ -293,7 +293,7 @@ resource "google_monitoring_alert_policy" "postgres_disk_usage" {
     display_name = "Disk usage > 80%"
 
     condition_threshold {
-      filter          = "resource.type=\"gce_instance\" AND resource.labels.instance_id=\"${google_compute_instance.postgres.instance_id}\""
+filter          = "metric.type=\"agent.googleapis.com/disk/percent_used\" AND resource.type=\"gce_instance\" AND resource.labels.instance_id=\"${google_compute_instance.postgres.instance_id}\" AND metric.labels.device = \"sda1\""
       duration        = "300s"
       comparison      = "COMPARISON_GT"
       threshold_value = 80

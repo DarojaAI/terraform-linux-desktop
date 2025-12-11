@@ -94,7 +94,7 @@ resource "null_resource" "docker_build" {
   triggers = {
     # Rebuild if source code changes
     src_hash = sha256(join("", [
-      for f in fileset(path.module, "../{a2a,core,schemas}/**/*.py") : filesha256("${path.module}/../${f}")
+      for f in fileset(path.module, "../{a2a,core,schemas}/**/*.py") : filesha256("${path.module}/${f}")
     ]))
     dockerfile_hash = filesha256("${path.module}/../Dockerfile")
   }
