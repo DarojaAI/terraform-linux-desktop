@@ -233,8 +233,8 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       }
 
       env {
-        name  = "ALLOWED_ORIGINS"
-        value = var.allowed_origins
+        name  = "ALLOWED_ORIGIN_REGEX"
+        value = var.allowed_origin_regex
       }
 
       # Optional: External agent URLs

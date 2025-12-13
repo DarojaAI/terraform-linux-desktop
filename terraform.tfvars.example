@@ -72,8 +72,8 @@ orchestrator_url = ""
 log_attacker_url = ""
 # Example: "https://log-attacker-xxxxx.run.app"
 
-# A comma-separated list of origins to allow for CORS.
-allowed_origins = "https://dev-nexus-frontend-git-main-milan-patels-projects-187b35de.vercel.app,http://localhost:3000"
+# A regex to match allowed origins for CORS.
+allowed_origin_regex = "https://.*-milan-patels-projects-187b35de\\.vercel\\.app"
 
 
 # ====================================
