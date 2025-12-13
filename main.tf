@@ -232,6 +232,11 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
         value = "true"
       }
 
+      env {
+        name  = "ALLOWED_ORIGINS"
+        value = var.allowed_origins
+      }
+
       # Optional: External agent URLs
       dynamic "env" {
         for_each = var.orchestrator_url != "" ? [1] : []

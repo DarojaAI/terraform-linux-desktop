@@ -135,6 +135,12 @@ variable "log_attacker_url" {
   default     = ""
 }
 
+variable "allowed_origins" {
+  description = "A comma-separated list of origins to allow for CORS."
+  type        = string
+  default     = "https://dev-nexus-frontend-git-main-milan-patels-projects-187b35de.vercel.app,http://localhost:3000"
+}
+
 # ====================================
 # Monitoring Configuration
 # ====================================
