@@ -52,7 +52,10 @@ resource "google_compute_firewall" "allow_postgres" {
     ports    = ["5432"]
   }
 
-  source_ranges = [var.postgres_subnet_cidr]
+  # Allow connections from the PostgreSQL subnet and the VPC connector CIDR
+  # Cloud Run egress via the VPC Access Connector will use addresses from
+  # `var.vpc_connector_cidr`, so include it here to permit Cloud Run -> VM traffic.
+  source_ranges = [var.postgres_subnet_cidr, var.vpc_connector_cidr]
   target_tags   = ["postgres-server"]
 }
 
