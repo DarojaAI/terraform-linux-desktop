@@ -121,6 +121,12 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
   location = var.region
   ingress  = var.allow_unauthenticated ? "INGRESS_TRAFFIC_ALL" : "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
 
+  # Ensure VPC connector is fully ready before creating service
+  depends_on = [
+    google_vpc_access_connector.postgres_connector,
+    google_compute_instance.postgres
+  ]
+
   template {
     scaling {
       min_instance_count = var.min_instances
