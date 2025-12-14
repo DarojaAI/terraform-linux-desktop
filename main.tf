@@ -139,8 +139,9 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
     timeout = "${var.timeout_seconds}s"
 
     # VPC connector for PostgreSQL access
+    # Must use full resource path for Cloud Run v2 API
     vpc_access {
-      connector = google_vpc_access_connector.postgres_connector.self_link
+      connector = "projects/${var.project_id}/locations/${var.region}/connectors/${google_vpc_access_connector.postgres_connector.name}"
       egress    = "PRIVATE_RANGES_ONLY"
     }
 
