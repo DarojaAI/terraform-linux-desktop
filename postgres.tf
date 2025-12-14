@@ -73,6 +73,31 @@ resource "google_compute_firewall" "allow_ssh" {
   target_tags   = ["postgres-server"]
 }
 
+# Cloud Router for NAT
+resource "google_compute_router" "postgres_router" {
+  name    = "dev-nexus-router"
+  region  = var.region
+  network = google_compute_network.postgres_network.name
+
+  depends_on = [google_compute_network.postgres_network]
+}
+
+# Cloud NAT for outbound internet access
+# Required for VM to download packages during startup
+resource "google_compute_router_nat" "postgres_nat" {
+  name   = "dev-nexus-nat"
+  router = google_compute_router.postgres_router.name
+  region = var.region
+
+  nat_ip_allocate_option             = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+
+  log_config {
+    enable = true
+    filter = "ERRORS_ONLY"
+  }
+}
+
 # VPC Connector for Cloud Run to access PostgreSQL
 resource "google_vpc_access_connector" "postgres_connector" {
   name          = "dev-nexus-connector"
