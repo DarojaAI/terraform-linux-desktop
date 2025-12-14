@@ -140,7 +140,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
     # VPC connector for PostgreSQL access
     vpc_access {
-      connector = google_vpc_access_connector.postgres_connector.id
+      connector = google_vpc_access_connector.postgres_connector.self_link
       egress    = "PRIVATE_RANGES_ONLY"
     }
 
