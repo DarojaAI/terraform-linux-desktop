@@ -121,10 +121,13 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
   location = var.region
   ingress  = var.allow_unauthenticated ? "INGRESS_TRAFFIC_ALL" : "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
 
-  # Ensure VPC connector is fully ready before creating service
+  # Ensure all dependencies are ready before creating service
   depends_on = [
     google_vpc_access_connector.postgres_connector,
-    google_compute_instance.postgres
+    google_compute_instance.postgres,
+    null_resource.docker_build,
+    google_secret_manager_secret_iam_member.github_token_access,
+    google_secret_manager_secret_iam_member.anthropic_key_access
   ]
 
   template {
@@ -273,12 +276,6 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
     type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
     percent = 100
   }
-
-  depends_on = [
-    null_resource.docker_build,
-    google_secret_manager_secret_iam_member.github_token_access,
-    google_secret_manager_secret_iam_member.anthropic_key_access
-  ]
 }
 
 # Allow unauthenticated access (optional, for testing)
