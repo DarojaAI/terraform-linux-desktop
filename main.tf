@@ -172,6 +172,11 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       }
 
       env {
+        name  = "REQUIRE_AUTH_FOR_WRITE"
+        value = tostring(var.require_auth_for_write)
+      }
+
+      env {
         name = "GITHUB_TOKEN"
         value_source {
           secret_key_ref {

@@ -54,6 +54,11 @@ allow_unauthenticated = false
 # ]
 allowed_service_accounts = []
 
+# Require authentication for write operations (add_deployment_info, add_lesson_learned, etc.)
+# Set to false for development (all skills publicly accessible)
+# Set to true for production (authenticated skills require auth headers)
+require_auth_for_write = false
+
 # Create service accounts for external agents
 # Set to true to auto-create service accounts for log-attacker and orchestrator
 create_external_service_accounts = false
@@ -147,12 +152,14 @@ enable_postgres_monitoring = true
 
 # Development Environment:
 # - allow_unauthenticated = true
+# - require_auth_for_write = false (all skills public)
 # - min_instances = 0
 # - cpu = "1", memory = "1Gi"
 # - postgres_machine_type = "e2-micro" (FREE!)
 
 # Staging Environment:
 # - allow_unauthenticated = false
+# - require_auth_for_write = true (skills require auth)
 # - min_instances = 0
 # - cpu = "1", memory = "2Gi"
 # - create_external_service_accounts = true
@@ -160,6 +167,7 @@ enable_postgres_monitoring = true
 
 # Production Environment:
 # - allow_unauthenticated = false
+# - require_auth_for_write = true (skills require auth)
 # - min_instances = 1 (no cold starts)
 # - cpu = "2", memory = "2Gi"
 # - cpu_always_allocated = true

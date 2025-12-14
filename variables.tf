@@ -113,6 +113,12 @@ variable "allowed_service_accounts" {
   default     = []
 }
 
+variable "require_auth_for_write" {
+  description = "Require authentication for write operations (add_deployment_info, add_lesson_learned, etc.). Set to false for development, true for production."
+  type        = bool
+  default     = false
+}
+
 variable "create_external_service_accounts" {
   description = "Create service accounts for external agents (log-attacker, orchestrator)"
   type        = bool
