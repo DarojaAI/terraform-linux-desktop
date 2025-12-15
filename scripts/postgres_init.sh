@@ -225,6 +225,7 @@ CREATE TABLE IF NOT EXISTS repositories (
     name VARCHAR(255) UNIQUE NOT NULL,
     problem_domain TEXT,
     last_analyzed TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_commit_sha VARCHAR(40),  -- Git commit SHA for pattern extraction
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
