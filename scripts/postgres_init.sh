@@ -1,7 +1,7 @@
 #!/bin/bash
 # PostgreSQL Installation and Configuration Script with pgvector
 # Runs on GCP Compute Engine e2-micro (Ubuntu 22.04)
-# Installs PostgreSQL ${postgres_version} with pgvector extension for embeddings
+# Uses persistent disk for data preservation across VM recreations
 
 set -e  # Exit on error
 set -x  # Print commands
@@ -15,6 +15,9 @@ DB_PASSWORD="${db_password}"
 BACKUP_BUCKET="${backup_bucket}"
 POSTGRES_VERSION="${postgres_version}"
 ENABLE_MONITORING="${enable_monitoring}"
+DATA_DISK_DEVICE="${data_disk_device}"
+PG_DATA_DIR="/var/lib/postgresql/data"
+PG_MOUNT_POINT="/mnt/postgres-data"
 
 # ============================================
 # System Updates and Dependencies
@@ -33,6 +36,44 @@ apt-get install -y \
     git \
     build-essential \
     postgresql-common
+
+# ============================================
+# Mount Persistent Data Disk
+# ============================================
+echo "===== Setting up persistent data disk ====="
+
+# Check if disk is attached
+if [ ! -b "/dev/$DATA_DISK_DEVICE" ]; then
+    echo "Error: Data disk /dev/$DATA_DISK_DEVICE not found!"
+    exit 1
+fi
+
+# Create mount point
+mkdir -p $PG_MOUNT_POINT
+
+# Check if disk is already formatted
+if ! sudo blkid "/dev/$DATA_DISK_DEVICE" > /dev/null 2>&1; then
+    echo "===== Formatting new disk ====="
+
+    # Format disk as ext4
+    mkfs.ext4 -F "/dev/$DATA_DISK_DEVICE"
+
+    # Add to fstab for automatic mounting on reboot
+    echo "/dev/$DATA_DISK_DEVICE $PG_MOUNT_POINT ext4 defaults,nofail 0 2" >> /etc/fstab
+else
+    echo "===== Disk already formatted, reusing existing data ====="
+
+    # Add to fstab if not already present
+    if ! grep -q "/dev/$DATA_DISK_DEVICE" /etc/fstab; then
+        echo "/dev/$DATA_DISK_DEVICE $PG_MOUNT_POINT ext4 defaults,nofail 0 2" >> /etc/fstab
+    fi
+fi
+
+# Mount the disk
+mount "$PG_MOUNT_POINT" || true  # Ignore if already mounted
+
+# Verify mount
+df -h | grep "$PG_MOUNT_POINT"
 
 # ============================================
 # Install PostgreSQL
@@ -69,23 +110,79 @@ cd /
 rm -rf /tmp/pgvector
 
 # ============================================
+# Move PostgreSQL Data Directory to Persistent Disk
+# ============================================
+echo "===== Configuring PostgreSQL data directory ====="
+
+# Check if this is first-time setup (no existing data on persistent disk)
+if [ ! -d "$PG_MOUNT_POINT/postgresql/$POSTGRES_VERSION/main" ]; then
+    echo "===== First-time setup: initializing cluster on persistent disk ====="
+
+    # Stop PostgreSQL if running
+    systemctl stop postgresql || true
+
+    # Create directories on persistent disk
+    mkdir -p "$PG_MOUNT_POINT/postgresql/$POSTGRES_VERSION/main"
+    mkdir -p "$PG_MOUNT_POINT/postgresql/$POSTGRES_VERSION/backups"
+
+    # Set proper ownership and permissions
+    chown -R postgres:postgres "$PG_MOUNT_POINT"
+    chmod 700 "$PG_MOUNT_POINT/postgresql/$POSTGRES_VERSION/main"
+
+    # Move default data directory
+    if [ -d "/var/lib/postgresql/$POSTGRES_VERSION/main" ]; then
+        rm -rf "/var/lib/postgresql/$POSTGRES_VERSION/main"
+    fi
+
+    mkdir -p "/var/lib/postgresql/$POSTGRES_VERSION"
+
+    # Create symlink to persistent disk
+    ln -s "$PG_MOUNT_POINT/postgresql/$POSTGRES_VERSION/main" "/var/lib/postgresql/$POSTGRES_VERSION/main"
+
+    # Initialize cluster
+    sudo -u postgres /usr/lib/postgresql/$POSTGRES_VERSION/bin/initdb -D "/var/lib/postgresql/$POSTGRES_VERSION/main"
+else
+    echo "===== Reusing existing PostgreSQL data directory ====="
+
+    # Stop PostgreSQL if running
+    systemctl stop postgresql || true
+
+    # Create symlink if it doesn't exist
+    if [ ! -L "/var/lib/postgresql/$POSTGRES_VERSION/main" ]; then
+        if [ -d "/var/lib/postgresql/$POSTGRES_VERSION/main" ]; then
+            # Move existing to persistent disk if present
+            mkdir -p "$PG_MOUNT_POINT/postgresql/$POSTGRES_VERSION"
+            mv "/var/lib/postgresql/$POSTGRES_VERSION/main" "$PG_MOUNT_POINT/postgresql/$POSTGRES_VERSION/main" || true
+        fi
+
+        mkdir -p "/var/lib/postgresql/$POSTGRES_VERSION"
+        ln -s "$PG_MOUNT_POINT/postgresql/$POSTGRES_VERSION/main" "/var/lib/postgresql/$POSTGRES_VERSION/main"
+    fi
+
+    # Ensure permissions
+    chown -R postgres:postgres "$PG_MOUNT_POINT"
+    chmod 700 "$PG_MOUNT_POINT/postgresql/$POSTGRES_VERSION/main"
+fi
+
+# ============================================
 # Configure PostgreSQL
 # ============================================
 echo "===== Configuring PostgreSQL ====="
-
-# Stop PostgreSQL for configuration
-systemctl stop postgresql
 
 # Configure postgresql.conf for remote connections
 PG_CONF="/etc/postgresql/$POSTGRES_VERSION/main/postgresql.conf"
 PG_HBA="/etc/postgresql/$POSTGRES_VERSION/main/pg_hba.conf"
 
-# Backup original config
-cp $PG_CONF $PG_CONF.backup
-cp $PG_HBA $PG_HBA.backup
+# Backup original configs if they exist
+if [ -f "$PG_CONF" ]; then
+    cp "$PG_CONF" "$PG_CONF.backup" || true
+fi
+if [ -f "$PG_HBA" ]; then
+    cp "$PG_HBA" "$PG_HBA.backup" || true
+fi
 
 # Update postgresql.conf
-cat >> $PG_CONF <<EOF
+cat >> "$PG_CONF" <<EOF
 
 # ====================================
 # Dev Nexus Custom Configuration
@@ -141,7 +238,7 @@ shared_preload_libraries = 'pg_stat_statements'
 EOF
 
 # Update pg_hba.conf for Cloud Run access
-cat > $PG_HBA <<EOF
+cat > "$PG_HBA" <<EOF
 # TYPE  DATABASE        USER            ADDRESS                 METHOD
 
 # Local connections
@@ -159,23 +256,30 @@ host    all             all             10.8.0.0/28             scram-sha-256
 EOF
 
 # Set proper permissions
-chmod 600 $PG_HBA
-chown postgres:postgres $PG_HBA
+chmod 600 "$PG_HBA"
+chown postgres:postgres "$PG_HBA"
 
 # Start PostgreSQL
+echo "===== Starting PostgreSQL ====="
 systemctl start postgresql
 systemctl enable postgresql
 
 # Wait for PostgreSQL to be ready
-sleep 5
+sleep 10
 
 # ============================================
-# Create Database and User
+# Create Database and User (if not exists)
 # ============================================
-echo "===== Creating database and user ====="
+echo "===== Setting up database and user ====="
 
-# Create user and database as postgres user
-sudo -u postgres psql <<EOF
+# Check if database already exists
+if sudo -u postgres psql -lqt | cut -d \| -f 1 | grep -qw "^$DB_NAME"; then
+    echo "===== Database '$DB_NAME' already exists - skipping creation ====="
+else
+    echo "===== Creating new database and user ====="
+
+    # Create user and database as postgres user
+    sudo -u postgres psql <<EOF
 -- Create database user
 CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';
 
@@ -204,15 +308,13 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $DB_USER;
 -- Verify pgvector installation
 SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';
 EOF
-
-echo "===== Database and pgvector setup complete ====="
+fi
 
 # ============================================
-# Initialize Schema
+# Initialize Schema (create if not exists)
 # ============================================
 echo "===== Initializing database schema ====="
 
-# Download schema initialization script from Cloud Storage or use embedded schema
 sudo -u postgres psql -d $DB_NAME <<'SCHEMA_EOF'
 -- ====================================
 -- Dev Nexus Database Schema v1.0
@@ -225,13 +327,13 @@ CREATE TABLE IF NOT EXISTS repositories (
     name VARCHAR(255) UNIQUE NOT NULL,
     problem_domain TEXT,
     last_analyzed TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    last_commit_sha VARCHAR(40),  -- Git commit SHA for pattern extraction
+    last_commit_sha VARCHAR(40),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX idx_repositories_name ON repositories(name);
-CREATE INDEX idx_repositories_last_analyzed ON repositories(last_analyzed);
+CREATE INDEX IF NOT EXISTS idx_repositories_name ON repositories(name);
+CREATE INDEX IF NOT EXISTS idx_repositories_last_analyzed ON repositories(last_analyzed);
 
 -- Patterns table with vector embeddings
 CREATE TABLE IF NOT EXISTS patterns (
@@ -240,14 +342,14 @@ CREATE TABLE IF NOT EXISTS patterns (
     name VARCHAR(500) NOT NULL,
     description TEXT,
     context TEXT,
-    embedding vector(1536),  -- OpenAI embedding dimension
+    embedding vector(1536),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(repo_id, name)
 );
 
-CREATE INDEX idx_patterns_repo_id ON patterns(repo_id);
-CREATE INDEX idx_patterns_name ON patterns(name);
-CREATE INDEX idx_patterns_embedding ON patterns USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+CREATE INDEX IF NOT EXISTS idx_patterns_repo_id ON patterns(repo_id);
+CREATE INDEX IF NOT EXISTS idx_patterns_name ON patterns(name);
+CREATE INDEX IF NOT EXISTS idx_patterns_embedding ON patterns USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 
 -- Technical decisions table
 CREATE TABLE IF NOT EXISTS technical_decisions (
@@ -259,7 +361,7 @@ CREATE TABLE IF NOT EXISTS technical_decisions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX idx_decisions_repo_id ON technical_decisions(repo_id);
+CREATE INDEX IF NOT EXISTS idx_decisions_repo_id ON technical_decisions(repo_id);
 
 -- Reusable components table
 CREATE TABLE IF NOT EXISTS reusable_components (
@@ -271,8 +373,8 @@ CREATE TABLE IF NOT EXISTS reusable_components (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX idx_components_repo_id ON reusable_components(repo_id);
-CREATE INDEX idx_components_name ON reusable_components(name);
+CREATE INDEX IF NOT EXISTS idx_components_repo_id ON reusable_components(repo_id);
+CREATE INDEX IF NOT EXISTS idx_components_name ON reusable_components(name);
 
 -- Keywords table (many-to-many with patterns)
 CREATE TABLE IF NOT EXISTS keywords (
@@ -280,7 +382,7 @@ CREATE TABLE IF NOT EXISTS keywords (
     keyword VARCHAR(200) UNIQUE NOT NULL
 );
 
-CREATE INDEX idx_keywords_keyword ON keywords(keyword);
+CREATE INDEX IF NOT EXISTS idx_keywords_keyword ON keywords(keyword);
 
 CREATE TABLE IF NOT EXISTS pattern_keywords (
     pattern_id INTEGER REFERENCES patterns(id) ON DELETE CASCADE,
@@ -294,26 +396,26 @@ CREATE TABLE IF NOT EXISTS dependencies (
     repo_id INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
     dependency_name VARCHAR(500) NOT NULL,
     dependency_version VARCHAR(100),
-    dependency_type VARCHAR(50),  -- 'external', 'consumer', 'derivative'
+    dependency_type VARCHAR(50),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX idx_dependencies_repo_id ON dependencies(repo_id);
-CREATE INDEX idx_dependencies_name ON dependencies(dependency_name);
+CREATE INDEX IF NOT EXISTS idx_dependencies_repo_id ON dependencies(repo_id);
+CREATE INDEX IF NOT EXISTS idx_dependencies_name ON dependencies(dependency_name);
 
 -- Repository relationships (for consumer/derivative tracking)
 CREATE TABLE IF NOT EXISTS repository_relationships (
     id SERIAL PRIMARY KEY,
     source_repo_id INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
     target_repo_id INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
-    relationship_type VARCHAR(50) NOT NULL,  -- 'consumes', 'derives_from'
+    relationship_type VARCHAR(50) NOT NULL,
     description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(source_repo_id, target_repo_id, relationship_type)
 );
 
-CREATE INDEX idx_repo_relationships_source ON repository_relationships(source_repo_id);
-CREATE INDEX idx_repo_relationships_target ON repository_relationships(target_repo_id);
+CREATE INDEX IF NOT EXISTS idx_repo_relationships_source ON repository_relationships(source_repo_id);
+CREATE INDEX IF NOT EXISTS idx_repo_relationships_target ON repository_relationships(target_repo_id);
 
 -- Deployment information
 CREATE TABLE IF NOT EXISTS deployment_scripts (
@@ -326,7 +428,7 @@ CREATE TABLE IF NOT EXISTS deployment_scripts (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX idx_deployment_scripts_repo_id ON deployment_scripts(repo_id);
+CREATE INDEX IF NOT EXISTS idx_deployment_scripts_repo_id ON deployment_scripts(repo_id);
 
 -- Lessons learned
 CREATE TABLE IF NOT EXISTS lessons_learned (
@@ -340,9 +442,9 @@ CREATE TABLE IF NOT EXISTS lessons_learned (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX idx_lessons_repo_id ON lessons_learned(repo_id);
-CREATE INDEX idx_lessons_category ON lessons_learned(category);
-CREATE INDEX idx_lessons_date ON lessons_learned(date);
+CREATE INDEX IF NOT EXISTS idx_lessons_repo_id ON lessons_learned(repo_id);
+CREATE INDEX IF NOT EXISTS idx_lessons_category ON lessons_learned(category);
+CREATE INDEX IF NOT EXISTS idx_lessons_date ON lessons_learned(date);
 
 -- Analysis history (for tracking changes over time)
 CREATE TABLE IF NOT EXISTS analysis_history (
@@ -355,9 +457,9 @@ CREATE TABLE IF NOT EXISTS analysis_history (
     components_count INTEGER DEFAULT 0
 );
 
-CREATE INDEX idx_history_repo_id ON analysis_history(repo_id);
-CREATE INDEX idx_history_analyzed_at ON analysis_history(analyzed_at);
-CREATE INDEX idx_history_commit_sha ON analysis_history(commit_sha);
+CREATE INDEX IF NOT EXISTS idx_history_repo_id ON analysis_history(repo_id);
+CREATE INDEX IF NOT EXISTS idx_history_analyzed_at ON analysis_history(analyzed_at);
+CREATE INDEX IF NOT EXISTS idx_history_commit_sha ON analysis_history(commit_sha);
 
 -- Testing information
 CREATE TABLE IF NOT EXISTS test_frameworks (
@@ -368,7 +470,7 @@ CREATE TABLE IF NOT EXISTS test_frameworks (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX idx_test_frameworks_repo_id ON test_frameworks(repo_id);
+CREATE INDEX IF NOT EXISTS idx_test_frameworks_repo_id ON test_frameworks(repo_id);
 
 -- Security patterns
 CREATE TABLE IF NOT EXISTS security_patterns (
@@ -381,12 +483,12 @@ CREATE TABLE IF NOT EXISTS security_patterns (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX idx_security_patterns_repo_id ON security_patterns(repo_id);
+CREATE INDEX IF NOT EXISTS idx_security_patterns_repo_id ON security_patterns(repo_id);
 
 -- Full-text search configuration
-CREATE INDEX idx_patterns_description_fts ON patterns USING gin(to_tsvector('english', description));
-CREATE INDEX idx_patterns_context_fts ON patterns USING gin(to_tsvector('english', context));
-CREATE INDEX idx_lessons_description_fts ON lessons_learned USING gin(to_tsvector('english', description));
+CREATE INDEX IF NOT EXISTS idx_patterns_description_fts ON patterns USING gin(to_tsvector('english', description));
+CREATE INDEX IF NOT EXISTS idx_patterns_context_fts ON patterns USING gin(to_tsvector('english', context));
+CREATE INDEX IF NOT EXISTS idx_lessons_description_fts ON lessons_learned USING gin(to_tsvector('english', description));
 
 -- Views for common queries
 CREATE OR REPLACE VIEW pattern_similarity_view AS
@@ -403,7 +505,7 @@ CROSS JOIN patterns p2
 WHERE p1.id < p2.id
   AND p1.embedding IS NOT NULL
   AND p2.embedding IS NOT NULL
-  AND 1 - (p1.embedding <=> p2.embedding) > 0.8;  -- Only show similar patterns
+  AND 1 - (p1.embedding <=> p2.embedding) > 0.8;
 
 -- Grant privileges to application user
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${db_user};
@@ -419,6 +521,8 @@ echo "===== Schema initialization complete ====="
 echo "===== Setting up automated backups ====="
 
 # Create backup script
+mkdir -p "$PG_MOUNT_POINT/postgresql/$POSTGRES_VERSION/backups"
+
 cat > /usr/local/bin/backup-postgres.sh <<'BACKUP_EOF'
 #!/bin/bash
 # PostgreSQL Backup Script
@@ -427,7 +531,7 @@ cat > /usr/local/bin/backup-postgres.sh <<'BACKUP_EOF'
 set -e
 
 DB_NAME="${db_name}"
-BACKUP_DIR="/var/backups/postgresql"
+BACKUP_DIR="/mnt/postgres-data/postgresql/${postgres_version}/backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="$BACKUP_DIR/dev-nexus-$TIMESTAMP.sql.gz"
 BUCKET="${backup_bucket}"
@@ -441,7 +545,7 @@ sudo -u postgres pg_dump $DB_NAME | gzip > $BACKUP_FILE
 # Upload to Cloud Storage
 gsutil cp $BACKUP_FILE gs://$BUCKET/
 
-# Keep only last 7 days of local backups
+# Keep only last 7 days of backups
 find $BACKUP_DIR -name "*.sql.gz" -mtime +7 -delete
 
 echo "Backup completed: $BACKUP_FILE"
@@ -456,7 +560,7 @@ cat > /etc/cron.d/postgres-backup <<EOF
 EOF
 
 # Create initial backup
-/usr/local/bin/backup-postgres.sh
+/usr/local/bin/backup-postgres.sh || echo "Initial backup skipped (data may be empty)"
 
 echo "===== Backup setup complete ====="
 
@@ -472,8 +576,8 @@ CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 EOF
 
     # Install Cloud Monitoring agent
-    curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
-    bash add-google-cloud-ops-agent-repo.sh --also-install
+    curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh || true
+    bash add-google-cloud-ops-agent-repo.sh --also-install || true
 
     echo "===== Monitoring setup complete ====="
 fi
@@ -491,7 +595,7 @@ SELECT version();
 SELECT extname, extversion FROM pg_extension WHERE extname = 'vector';
 
 -- Check tables
-SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';
+SELECT COUNT(*) as table_count FROM information_schema.tables WHERE table_schema = 'public';
 
 -- Test vector operations
 SELECT vector_dims(ARRAY[1,2,3]::vector);
@@ -507,6 +611,7 @@ echo "======================================"
 echo "Database: $DB_NAME"
 echo "User: $DB_USER"
 echo "PostgreSQL Version: $POSTGRES_VERSION"
+echo "Data Directory: $PG_MOUNT_POINT/postgresql/$POSTGRES_VERSION/main"
 echo "pgvector: Installed and enabled"
 echo "Backup location: gs://$BACKUP_BUCKET"
 echo "======================================"

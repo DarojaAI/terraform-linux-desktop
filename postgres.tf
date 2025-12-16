@@ -149,6 +149,24 @@ resource "google_storage_bucket" "postgres_backups" {
 }
 
 # ============================================
+# PostgreSQL Data Disk (Persistent)
+# ============================================
+
+# Create persistent disk for PostgreSQL data
+# This disk survives VM recreation, preserving data
+resource "google_compute_disk" "postgres_data" {
+  name  = "dev-nexus-postgres-data"
+  type  = "pd-standard"
+  zone  = "${var.region}-a"
+  size  = var.postgres_disk_size_gb
+  labels = merge(var.labels, {
+    component = "database"
+    database  = "postgresql"
+    data      = "persistent"
+  })
+}
+
+# ============================================
 # PostgreSQL VM Instance
 # ============================================
 
@@ -171,9 +189,15 @@ resource "google_compute_instance" "postgres" {
   boot_disk {
     initialize_params {
       image = "ubuntu-os-cloud/ubuntu-2204-lts"
-      size  = var.postgres_disk_size_gb
+      size  = "20"
       type  = "pd-standard"
     }
+  }
+
+  # Attach persistent data disk
+  attached_disk {
+    source      = google_compute_disk.postgres_data.id
+    device_name = "postgres-data"
   }
 
   network_interface {
@@ -192,6 +216,7 @@ resource "google_compute_instance" "postgres" {
     backup_bucket     = google_storage_bucket.postgres_backups.name
     postgres_version  = var.postgres_version
     enable_monitoring = var.enable_postgres_monitoring
+    data_disk_device  = "sdb"
   })
 
   service_account {
@@ -216,7 +241,8 @@ resource "google_compute_instance" "postgres" {
   depends_on = [
     google_project_service.compute,
     google_compute_subnetwork.postgres_subnet,
-    google_storage_bucket.postgres_backups
+    google_storage_bucket.postgres_backups,
+    google_compute_disk.postgres_data
   ]
 }
 
