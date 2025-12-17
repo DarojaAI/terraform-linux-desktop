@@ -485,6 +485,32 @@ CREATE TABLE IF NOT EXISTS security_patterns (
 
 CREATE INDEX IF NOT EXISTS idx_security_patterns_repo_id ON security_patterns(repo_id);
 
+-- Runtime issues (production monitoring)
+CREATE TABLE IF NOT EXISTS runtime_issues (
+    id SERIAL PRIMARY KEY,
+    repo_id INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
+    issue_id VARCHAR(100) UNIQUE NOT NULL,
+    detected_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    issue_type VARCHAR(50) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    service_type VARCHAR(50) NOT NULL,
+    log_snippet TEXT,
+    root_cause TEXT,
+    suggested_fix TEXT,
+    pattern_reference VARCHAR(500),
+    github_issue_url VARCHAR(500),
+    status VARCHAR(50) DEFAULT 'open',
+    metrics JSONB,
+    resolution_time TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_runtime_issues_repo_id ON runtime_issues(repo_id);
+CREATE INDEX IF NOT EXISTS idx_runtime_issues_detected_at ON runtime_issues(detected_at DESC);
+CREATE INDEX IF NOT EXISTS idx_runtime_issues_issue_type ON runtime_issues(issue_type);
+CREATE INDEX IF NOT EXISTS idx_runtime_issues_severity ON runtime_issues(severity);
+CREATE INDEX IF NOT EXISTS idx_runtime_issues_repo_detected ON runtime_issues(repo_id, detected_at DESC);
+
 -- Full-text search configuration
 CREATE INDEX IF NOT EXISTS idx_patterns_description_fts ON patterns USING gin(to_tsvector('english', description));
 CREATE INDEX IF NOT EXISTS idx_patterns_context_fts ON patterns USING gin(to_tsvector('english', context));
