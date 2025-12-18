@@ -55,69 +55,88 @@ gcloud config set project YOUR_PROJECT_ID
 
 ## Quick Start
 
-### Step 1: Configure Variables
+> **⚠️ IMPORTANT:** This project uses **multi-environment Terraform** with unified initialization. Read [TERRAFORM_UNIFIED_INIT.md](../TERRAFORM_UNIFIED_INIT.md) for the recommended approach.
+
+### Step 1: Initialize Backend (One-time)
 
 ```bash
-# Copy example configuration
-cp terraform.tfvars.example terraform.tfvars
-
-# Edit with your values
-nano terraform.tfvars
+# Set up GCS backend bucket with versioning and backups
+bash scripts/setup-terraform-backend.sh
 ```
 
-**Required values:**
+This creates:
+- GCS bucket for state with versioning
+- Backup bucket for disaster recovery
+- Lifecycle policies for automatic cleanup
+
+### Step 2: Initialize Terraform for Your Environment
+
+```bash
+# For development
+bash scripts/terraform-init-unified.sh dev
+
+# For staging
+bash scripts/terraform-init-unified.sh staging
+
+# For production
+bash scripts/terraform-init-unified.sh prod
+```
+
+This automatically:
+- ✅ Detects project name from directory
+- ✅ Configures backend with correct bucket/prefix
+- ✅ Handles reconfiguration when switching environments
+- ✅ Validates configuration
+
+### Step 3: Configure Environment Variables
+
+```bash
+# Edit the appropriate tfvars file
+nano dev.tfvars      # For development
+nano staging.tfvars  # For staging
+nano prod.tfvars     # For production
+```
+
+Update placeholder values with actual credentials from Secret Manager:
 ```hcl
-project_id          = "your-gcp-project-id"
-github_token        = "ghp_xxxxxxxxxxxxx"
-anthropic_api_key   = "sk-ant-xxxxxxxxxxxxx"
-knowledge_base_repo = "username/repository"
+# Required:
+github_token      = "actual-github-token"
+anthropic_api_key = "actual-anthropic-key"
+postgres_db_password = "actual-database-password"
 ```
 
-### Step 2: Initialize Terraform
+Terraform will automatically create these as secrets in Google Secret Manager.
+
+### Step 4: Plan Deployment
 
 ```bash
-terraform init
+# For your chosen environment
+terraform plan -var-file="dev.tfvars" -out=tfplan
 ```
 
-Expected output:
-```
-Initializing the backend...
-Initializing provider plugins...
-- Finding hashicorp/google versions matching "~> 5.0"...
-- Installing hashicorp/google v5.x.x...
+Review the planned changes for:
+- Cloud Run service
+- PostgreSQL VM
+- Secret Manager secrets
+- VPC networking
+- IAM bindings
 
-Terraform has been successfully initialized!
-```
-
-### Step 3: Plan Deployment
+### Step 5: Deploy
 
 ```bash
-terraform plan
+terraform apply tfplan
 ```
 
-Review the planned changes. You should see:
-- Secret Manager secrets (2)
-- Cloud Run service (1)
-- IAM bindings (~4)
-- Service accounts (if enabled)
+Deployment takes ~10-15 minutes (includes PostgreSQL VM provisioning).
 
-### Step 4: Deploy
-
-```bash
-terraform apply
-```
-
-Type `yes` when prompted.
-
-Deployment takes ~5-10 minutes.
-
-### Step 5: Verify
+### Step 6: Verify
 
 ```bash
 # Get service URL from outputs
-SERVICE_URL=$(terraform output -raw service_url)
+terraform output service_url
 
 # Test health endpoint
+SERVICE_URL=$(terraform output -raw service_url)
 curl $SERVICE_URL/health
 
 # Test AgentCard
@@ -126,79 +145,62 @@ curl $SERVICE_URL/.well-known/agent.json | jq
 
 ---
 
-## Configuration Options
+## Environment Configurations
 
-### Development Environment
+For detailed environment-specific setup, see [MULTI_ENV_SETUP.md](../MULTI_ENV_SETUP.md).
+
+### Development Environment (dev.tfvars)
 
 **Characteristics:**
-- Public access (no authentication)
-- Scales to zero
-- Minimal resources
+- ✅ Public access (unauthenticated)
+- ✅ Scales to zero (cost-effective)
+- ✅ Minimal resources (FREE tier eligible)
+- ✅ Database: e2-micro, 30GB
 
-```hcl
-# terraform.tfvars
-allow_unauthenticated = true
-min_instances         = 0
-max_instances         = 5
-cpu                   = "1"
-memory                = "1Gi"
+```bash
+bash scripts/terraform-init-unified.sh dev
+terraform plan -var-file="dev.tfvars"
+terraform apply -var-file="dev.tfvars"
 ```
 
 **Cost:** ~$0-2/month (mostly free tier)
 
-### Staging Environment
+### Staging Environment (staging.tfvars)
 
 **Characteristics:**
-- Private access (authentication required)
-- Scales to zero
-- Moderate resources
-- Service accounts for external agents
+- ✅ Authenticated access required
+- ✅ Scales to zero with moderate max
+- ✅ Mid-tier resources
+- ✅ Service accounts for external integrations
+- ✅ Database: e2-micro, 50GB
+- ✅ Monitoring enabled
 
-```hcl
-# terraform.tfvars
-allow_unauthenticated            = false
-min_instances                    = 0
-max_instances                    = 10
-cpu                              = "1"
-memory                           = "2Gi"
-create_external_service_accounts = true
-allowed_service_accounts = [
-  "log-attacker@project.iam.gserviceaccount.com",
-  "orchestrator@project.iam.gserviceaccount.com"
-]
+```bash
+bash scripts/terraform-init-unified.sh staging
+terraform plan -var-file="staging.tfvars"
+terraform apply -var-file="staging.tfvars"
 ```
 
-**Cost:** ~$2-10/month
+**Cost:** ~$5-15/month
 
-### Production Environment
+### Production Environment (prod.tfvars)
 
 **Characteristics:**
-- Private access
-- Always-on (no cold starts)
-- High resources
-- Monitoring and alerts enabled
+- ✅ Authenticated access (strict security)
+- ✅ Always-on (min 1 instance, no cold starts)
+- ✅ High resources (2 vCPU, 2GB RAM)
+- ✅ CPU always allocated
+- ✅ Database: e2-small, 100GB
+- ✅ Monitoring and alerting enabled
+- ✅ Service accounts for external agents
 
-```hcl
-# terraform.tfvars
-allow_unauthenticated            = false
-min_instances                    = 1     # Always warm
-max_instances                    = 20    # Handle traffic spikes
-cpu                              = "2"
-memory                           = "2Gi"
-cpu_always_allocated             = true  # No cold starts
-create_external_service_accounts = true
-enable_monitoring_alerts         = true
-error_rate_threshold             = 5.0
-latency_threshold_ms             = 3000
-
-# Service accounts with proper scoping
-allowed_service_accounts = [
-  "log-attacker-prod@project.iam.gserviceaccount.com",
-  "orchestrator-prod@project.iam.gserviceaccount.com"
-]
+```bash
+bash scripts/terraform-init-unified.sh prod
+terraform plan -var-file="prod.tfvars"
+terraform apply -var-file="prod.tfvars"
 ```
 
-**Cost:** ~$15-50/month (depending on traffic)
+**Cost:** ~$20-50/month (depending on traffic)
 
 ---
 
@@ -277,49 +279,43 @@ terraform destroy
 
 ## State Management
 
-### Local State (Default)
+> **Complete State Management Guide:** See [TERRAFORM_STATE_MANAGEMENT.md](../TERRAFORM_STATE_MANAGEMENT.md)
 
-By default, Terraform stores state locally in `terraform.tfstate`.
+### Unified Remote State (Recommended)
 
-**Pros:**
-- Simple
-- No setup required
+All environments store state in **Google Cloud Storage** with:
+- ✅ Automatic versioning for rollback
+- ✅ State locking for concurrent safety
+- ✅ Environment-based prefixes for isolation
+- ✅ Backup bucket for disaster recovery
+- ✅ Automatic lifecycle policies
 
-**Cons:**
-- Not collaborative
-- No backup
-- State can be lost
-
-### Remote State (Recommended for Teams)
-
-Store state in Google Cloud Storage for collaboration and safety.
-
-**Setup:**
+**Setup (one-time):**
 
 ```bash
-# Create bucket for state
-gsutil mb gs://your-terraform-state-bucket
-
-# Enable versioning (for rollback)
-gsutil versioning set on gs://your-terraform-state-bucket
+bash scripts/setup-terraform-backend.sh
 ```
 
-**Configure backend in main.tf:**
+This configures:
+- Primary bucket: `gs://globalbiting-dev-terraform-state/`
+- Environment prefixes: `dev-nexus/dev/`, `dev-nexus/staging/`, `dev-nexus/prod/`
+- Backup bucket: `gs://globalbiting-dev-terraform-state-backups/`
 
-```hcl
-terraform {
-  backend "gcs" {
-    bucket = "your-terraform-state-bucket"
-    prefix = "dev-nexus"
-  }
-}
-```
+### State Backup & Recovery
 
-**Migrate existing state:**
-
+**Manual backup:**
 ```bash
-terraform init -migrate-state
+bash scripts/backup-terraform-state.sh dev
+bash scripts/backup-terraform-state.sh staging
+bash scripts/backup-terraform-state.sh prod
 ```
+
+**Recovery (if needed):**
+```bash
+bash scripts/recover-terraform-state.sh dev
+```
+
+For detailed procedures, see [TERRAFORM_STATE_MANAGEMENT.md](../TERRAFORM_STATE_MANAGEMENT.md).
 
 ---
 
@@ -471,55 +467,99 @@ gcloud beta compute --project=PROJECT_ID \
 
 ## Best Practices
 
-### 1. Use Workspaces for Environments
+### 1. Use Unified Initialization Scripts
 
 ```bash
-# Create workspaces
-terraform workspace new dev
-terraform workspace new staging
-terraform workspace new production
+# Never use plain 'terraform init' - use the unified script
+bash scripts/terraform-init-unified.sh dev    # ✅ Correct
+# Don't use: terraform init                   # ❌ Wrong
 
-# Switch between environments
-terraform workspace select production
-terraform apply -var-file=production.tfvars
+# Auto-handles:
+# - Backend configuration
+# - Environment-specific state isolation
+# - Reconfiguration when switching environments
 ```
 
-### 2. Tag Resources
+### 2. Environment-Specific tfvars Files
+
+```bash
+# Each environment has its own tfvars file
+terraform apply -var-file="dev.tfvars"       # ✅ Development
+terraform apply -var-file="staging.tfvars"   # ✅ Staging
+terraform apply -var-file="prod.tfvars"      # ✅ Production
+
+# Never use single terraform.tfvars           # ❌ Deprecated
+```
+
+### 3. State Isolation with Prefixes
+
+State is isolated by environment:
+```
+gs://globalbiting-dev-terraform-state/
+├── dev-nexus/dev/       # Development
+├── dev-nexus/staging/   # Staging
+└── dev-nexus/prod/      # Production
+```
+
+Each environment has separate state, preventing cross-environment accidents.
+
+### 4. Secrets Management
+
+Never commit secrets! Terraform handles Secret Manager automatically:
+
+```hcl
+# In tfvars file (with placeholder):
+github_token      = "your-actual-token"      # Replace before apply
+anthropic_api_key = "your-actual-key"        # Replace before apply
+postgres_db_password = "your-actual-password" # Replace before apply
+
+# Terraform will:
+# 1. Create secrets in Secret Manager (dev-nexus-{env}_* naming)
+# 2. Inject into Cloud Run service
+# 3. Never expose in state files
+```
+
+**Do not use environment variables:**
+```bash
+# ❌ Don't do this
+export TF_VAR_github_token="token"
+terraform apply
+
+# ✅ Do this instead
+# Edit tfvars file with real values
+terraform apply -var-file="dev.tfvars"
+```
+
+### 5. Always Plan Before Apply
+
+```bash
+# Review changes before applying
+terraform plan -var-file="dev.tfvars" -out=tfplan
+
+# Show detailed plan
+terraform show tfplan
+
+# Apply only if plan looks correct
+terraform apply tfplan
+```
+
+### 6. Use State Locking
+
+State locking is **automatic** with GCS backend:
+- Prevents concurrent modifications
+- Safe for team collaboration
+- Automatic unlock if lock expires (10 min default)
+
+### 7. Tag Resources
 
 ```hcl
 labels = {
-  environment = "production"
+  application = "dev-nexus"
   managed_by  = "terraform"
+  environment = var.environment      # Auto-populated from tfvars
   team        = "platform"
   cost_center = "engineering"
 }
-```
-
-### 3. Enable State Locking
-
-Using GCS backend enables automatic state locking.
-
-### 4. Use Variables for Secrets
-
-Never commit secrets to git!
-
-```bash
-# Use environment variables
-export TF_VAR_github_token="ghp_xxxxx"
-export TF_VAR_anthropic_api_key="sk-ant-xxxxx"
-
-# Terraform will use these automatically
-terraform apply
-```
-
-### 5. Plan Before Apply
-
-```bash
-# Always review changes
-terraform plan -out=tfplan
-
-# Apply only if plan looks good
-terraform apply tfplan
 ```
 
 ---
@@ -540,16 +580,37 @@ terraform apply tfplan
 
 ---
 
-## Support
+## Documentation
 
-**Documentation:**
+### Multi-Environment Setup
+- [TERRAFORM_UNIFIED_INIT.md](../TERRAFORM_UNIFIED_INIT.md) - Unified initialization across projects
+- [MULTI_ENV_SETUP.md](../MULTI_ENV_SETUP.md) - Environment-specific configuration and deployment
+- [TERRAFORM_STATE_MANAGEMENT.md](../TERRAFORM_STATE_MANAGEMENT.md) - State backup and recovery
+
+### Deployment
+- [DEPLOYMENT.md](../DEPLOYMENT.md) - Quick deployment guide (bash scripts alternative)
+- [DEPLOYMENT_READINESS.md](../DEPLOYMENT_READINESS.md) - Pre-deployment checklist
+
+### Reference
+- [CLAUDE.md](../CLAUDE.md) - Developer guidelines (includes multi-environment section)
+
+### External References
 - Terraform: https://registry.terraform.io/providers/hashicorp/google/latest/docs
 - Cloud Run: https://cloud.google.com/run/docs
+- Google Secret Manager: https://cloud.google.com/secret-manager
 
-**Issues:**
-- GitHub: https://github.com/patelmm79/dev-nexus/issues
+## Issues
+
+**GitHub:** https://github.com/patelmm79/dev-nexus/issues
 
 ---
 
-**Last Updated:** 2025-12-09
-**Version:** 1.0
+**Last Updated:** 2025-12-18
+**Version:** 2.0
+**Key Changes:**
+- ✅ Multi-environment setup with dev/staging/prod
+- ✅ Unified terraform-init-unified.sh scripts
+- ✅ Remote state management with versioning
+- ✅ State backup and recovery procedures
+- ✅ Environment-specific tfvars files
+- ✅ Automatic Secret Manager integration
