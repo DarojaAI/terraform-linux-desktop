@@ -90,7 +90,6 @@ labels = {
 # PostgreSQL - Development Settings
 # ====================================
 
-postgres_db_password      = "dev-db-password-placeholder"  # Replace with actual from Secret Manager
 postgres_db_name          = "devnexus"
 postgres_db_user          = "devnexus"
 postgres_version          = "15"
