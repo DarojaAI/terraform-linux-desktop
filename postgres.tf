@@ -270,9 +270,9 @@ resource "google_storage_bucket_iam_member" "postgres_backup_reader" {
   member = "serviceAccount:${google_service_account.postgres_vm.email}"
 }
 
-# Grant Secret Manager access for database credentials
+# Grant Secret Manager access for database credentials (prefixed per environment)
 resource "google_secret_manager_secret" "postgres_password" {
-  secret_id = "POSTGRES_PASSWORD"
+  secret_id = "${var.secret_prefix}_POSTGRES_PASSWORD"
 
   replication {
     auto {}

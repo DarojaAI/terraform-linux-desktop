@@ -13,10 +13,11 @@ terraform {
 
   # Use Cloud Storage backend for state (prevents data loss from local terraform)
   # This stores terraform state remotely and prevents accidental destruction
-  # Run scripts/setup-terraform-state.sh once to initialize the shared state bucket
+  # Backend prefix is set via CLI: terraform init -backend-config="prefix=dev-nexus/<env>"
+  # Run scripts/terraform-init.sh to initialize with correct environment-specific prefix
   backend "gcs" {
     bucket = "terraform-state-globalbiting-dev"
-    prefix = "dev-nexus"
+    # prefix is set dynamically via -backend-config flag during terraform init
   }
 }
 
@@ -47,9 +48,9 @@ resource "google_project_service" "artifactregistry" {
   disable_on_destroy = false
 }
 
-# Create secrets in Secret Manager
+# Create secrets in Secret Manager (prefixed per environment to prevent collisions)
 resource "google_secret_manager_secret" "github_token" {
-  secret_id = "GITHUB_TOKEN"
+  secret_id = "${var.secret_prefix}_GITHUB_TOKEN"
 
   replication {
     auto {}
@@ -64,7 +65,7 @@ resource "google_secret_manager_secret_version" "github_token" {
 }
 
 resource "google_secret_manager_secret" "anthropic_api_key" {
-  secret_id = "ANTHROPIC_API_KEY"
+  secret_id = "${var.secret_prefix}_ANTHROPIC_API_KEY"
 
   replication {
     auto {}

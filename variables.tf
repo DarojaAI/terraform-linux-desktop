@@ -1,6 +1,30 @@
 # Terraform Variables for dev-nexus
 
 # ====================================
+# Environment Configuration (REQUIRED)
+# ====================================
+
+variable "environment" {
+  description = "Environment name (dev, staging, prod) - used for resource naming and state isolation"
+  type        = string
+
+  validation {
+    condition     = contains(["dev", "staging", "prod"], var.environment)
+    error_message = "Environment must be 'dev', 'staging', or 'prod'."
+  }
+}
+
+variable "secret_prefix" {
+  description = "Prefix for secrets in Google Secret Manager (e.g., 'dev-nexus-dev', 'dev-nexus-prod'). Prevents collisions between environments."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9-]{2,}[a-z0-9]$", var.secret_prefix))
+    error_message = "Secret prefix must start and end with lowercase letter or number, contain only lowercase letters, numbers, and hyphens, and be at least 4 characters."
+  }
+}
+
+# ====================================
 # Required Variables
 # ====================================
 
@@ -190,12 +214,11 @@ variable "latency_threshold_ms" {
 # ====================================
 
 variable "labels" {
-  description = "Labels to apply to all resources"
+  description = "Labels to apply to all resources (environment label is auto-set from var.environment)"
   type        = map(string)
   default = {
     application = "dev-nexus"
     managed_by  = "terraform"
-    environment = "production"
   }
 }
 
