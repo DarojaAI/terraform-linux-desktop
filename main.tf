@@ -112,7 +112,7 @@ resource "null_resource" "docker_build" {
       cd ${path.module}/..
       gcloud builds submit \
         --config=cloudbuild.yaml \
-        --substitutions="_REGION=${var.region},_KNOWLEDGE_BASE_REPO=${var.knowledge_base_repo}" \
+        --substitutions="_REGION=${var.region},_ENVIRONMENT=${var.environment},_KNOWLEDGE_BASE_REPO=${var.knowledge_base_repo}" \
         --project=${var.project_id}
     EOT
   }
