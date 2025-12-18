@@ -248,6 +248,16 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       }
 
       env {
+        name  = "POSTGRES_SSLMODE"
+        value = "disable"
+      }
+
+      env {
+        name  = "POSTGRES_SSL_NO_VERIFY"
+        value = "false"
+      }
+
+      env {
         name  = "ALLOWED_ORIGIN_REGEX"
         value = var.allowed_origin_regex
       }
