@@ -13,8 +13,9 @@ terraform {
 
   # Use Cloud Storage backend for state (prevents data loss from local terraform)
   # This stores terraform state remotely and prevents accidental destruction
+  # Run scripts/setup-terraform-state.sh once to initialize the shared state bucket
   backend "gcs" {
-    bucket = "globalbiting-dev-terraform-state"
+    bucket = "terraform-state-globalbiting-dev"
     prefix = "dev-nexus"
   }
 }
