@@ -372,9 +372,9 @@ resource "google_compute_resource_policy" "postgres_snapshot_policy" {
 
 # Attach snapshot policy to PostgreSQL data disk
 resource "google_compute_disk_resource_policy_attachment" "postgres_snapshots" {
-  name     = google_compute_resource_policy.postgres_snapshot_policy.name
-  disk     = google_compute_disk.postgres_data.id
-  location = var.region
+  name   = google_compute_resource_policy.postgres_snapshot_policy.name
+  disk   = google_compute_disk.postgres_data.name
+  zone   = google_compute_instance.postgres.zone
 }
 
 # Alert policy for disk usage
