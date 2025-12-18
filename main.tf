@@ -11,11 +11,12 @@ terraform {
     }
   }
 
-  # Recommended: Use Cloud Storage backend for state
-  # backend "gcs" {
-  #   bucket = "your-terraform-state-bucket"
-  #   prefix = "dev-nexus"
-  # }
+  # Use Cloud Storage backend for state (prevents data loss from local terraform)
+  # This stores terraform state remotely and prevents accidental destruction
+  backend "gcs" {
+    bucket = "globalbiting-dev-terraform-state"
+    prefix = "dev-nexus"
+  }
 }
 
 # Configure Google Cloud Provider

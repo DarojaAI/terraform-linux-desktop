@@ -337,6 +337,46 @@ filter = "metric.type=\"compute.googleapis.com/instance/cpu/utilization\" AND re
   })
 }
 
+# ============================================
+# Automated Disk Snapshots for Data Protection
+# ============================================
+
+# Create daily snapshots of the PostgreSQL data disk
+resource "google_compute_resource_policy" "postgres_snapshot_policy" {
+  name        = "postgres-daily-snapshots"
+  description = "Daily snapshots of PostgreSQL data disk at 2 AM for disaster recovery"
+
+  snapshot_schedule_policy {
+    schedule {
+      daily_schedule {
+        days_in_cycle = 1
+        start_time    = "02:00" # 2 AM
+      }
+    }
+
+    retention_policy {
+      max_retention_days = 30 # Keep last 30 days of snapshots
+    }
+
+    snapshot_properties {
+      labels = {
+        type        = "postgres-backup"
+        purpose     = "disaster-recovery"
+        managed_by  = "terraform"
+      }
+
+      storage_locations = [var.region]
+    }
+  }
+}
+
+# Attach snapshot policy to PostgreSQL data disk
+resource "google_compute_disk_resource_policy_attachment" "postgres_snapshots" {
+  name     = google_compute_resource_policy.postgres_snapshot_policy.name
+  disk     = google_compute_disk.postgres_data.id
+  location = var.region
+}
+
 # Alert policy for disk usage
 resource "google_monitoring_alert_policy" "postgres_disk_usage" {
   count        = var.enable_postgres_monitoring ? 1 : 0
