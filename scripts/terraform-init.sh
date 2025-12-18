@@ -27,8 +27,9 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TERRAFORM_DIR="$( cd "$SCRIPT_DIR/.." && pwd )"
 
 # Configuration
+# Updated to use unified bucket naming (matching resume-customizer pattern)
 PROJECT_NAME="dev-nexus"
-TERRAFORM_STATE_BUCKET="terraform-state-globalbiting-dev"
+TERRAFORM_STATE_BUCKET="globalbiting-dev-terraform-state"
 
 # Validate environment parameter
 if [ -z "$1" ]; then

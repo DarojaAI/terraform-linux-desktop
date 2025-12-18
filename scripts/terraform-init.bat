@@ -11,7 +11,8 @@ setlocal enabledelayedexpansion
 
 REM Color codes (using conditional formatting)
 set "PROJECT_NAME=dev-nexus"
-set "TERRAFORM_STATE_BUCKET=terraform-state-globalbiting-dev"
+REM Updated to use unified bucket naming (matching resume-customizer pattern)
+set "TERRAFORM_STATE_BUCKET=globalbiting-dev-terraform-state"
 
 REM Get script directory
 set "SCRIPT_DIR=%~dp0"

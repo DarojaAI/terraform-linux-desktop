@@ -13,11 +13,16 @@ terraform {
 
   # Use Cloud Storage backend for state (prevents data loss from local terraform)
   # This stores terraform state remotely and prevents accidental destruction
-  # Backend prefix is set via CLI: terraform init -backend-config="prefix=dev-nexus/<env>"
-  # Run scripts/terraform-init.sh to initialize with correct environment-specific prefix
+  #
+  # Backend configured via CLI during terraform init:
+  #   terraform init \
+  #     -backend-config="bucket=globalbiting-dev-terraform-state" \
+  #     -backend-config="prefix=dev-nexus/dev"
+  #
+  # Or use helper script:
+  #   bash scripts/terraform-init-unified.sh dev
   backend "gcs" {
-    bucket = "terraform-state-globalbiting-dev"
-    # prefix is set dynamically via -backend-config flag during terraform init
+    # Both bucket and prefix set dynamically via -backend-config flags
   }
 }
 
