@@ -133,9 +133,20 @@ output "postgres_zone" {
   value       = google_compute_instance.postgres.zone
 }
 
-output "postgres_connection_string" {
-  description = "PostgreSQL connection string (password redacted)"
+output "postgres_external_ip" {
+  description = "External (ephemeral) IP address of PostgreSQL VM for external access"
+  value       = try(google_compute_instance.postgres.network_interface[0].access_config[0].nat_ip, null)
+}
+
+output "postgres_connection_string_internal" {
+  description = "PostgreSQL connection string for Cloud Run (internal VPC)"
   value       = "postgresql://${var.postgres_db_user}:****@${google_compute_address.postgres_ip.address}:5432/${var.postgres_db_name}"
+  sensitive   = false
+}
+
+output "postgres_connection_string_external" {
+  description = "PostgreSQL connection string for external access (if IP assigned and allow_postgres_from_cidrs configured)"
+  value       = try(google_compute_instance.postgres.network_interface[0].access_config[0].nat_ip, null) != null ? "postgresql://${var.postgres_db_user}:****@${google_compute_instance.postgres.network_interface[0].access_config[0].nat_ip}:5432/${var.postgres_db_name}" : "External IP not yet assigned - wait a few minutes and re-run 'terraform output'"
   sensitive   = false
 }
 
