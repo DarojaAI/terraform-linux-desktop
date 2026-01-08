@@ -448,7 +448,8 @@ CREATE TABLE IF NOT EXISTS deployment_scripts (
     description TEXT,
     commands JSONB,
     environment_variables JSONB,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(repo_id, name)
 );
 
 CREATE INDEX IF NOT EXISTS idx_deployment_scripts_repo_id ON deployment_scripts(repo_id);
