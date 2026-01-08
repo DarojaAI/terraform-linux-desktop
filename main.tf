@@ -345,24 +345,26 @@ resource "google_cloud_run_service_iam_member" "orchestrator_invoker" {
 
 # Cloud Build GitHub Webhook Trigger
 # Automatically triggers Docker build and Cloud Run deployment on git push to main
-resource "google_cloudbuild_trigger" "dev_nexus_github" {
-  name            = "pattern-discovery-agent-webhook"
-  description     = "Automatically build and deploy dev-nexus on GitHub push to main"
-  filename        = "cloudbuild.yaml"
-  disabled        = false
-
-  github {
-    owner = "patelmm79"
-    name  = "dev-nexus"
-    push {
-      branch = "^main$"
-    }
-  }
-
-  depends_on = [
-    google_project_service.cloudbuild
-  ]
-}
+# DISABLED - requires GitHub App authentication setup in GCP console first
+# To enable: Set up GitHub App connection in Cloud Build console, then uncomment
+# resource "google_cloudbuild_trigger" "dev_nexus_github" {
+#   name            = "pattern-discovery-agent-webhook"
+#   description     = "Automatically build and deploy dev-nexus on GitHub push to main"
+#   filename        = "cloudbuild.yaml"
+#   disabled        = false
+#
+#   github {
+#     owner = "patelmm79"
+#     name  = "dev-nexus"
+#     push {
+#       branch = "^main$"
+#     }
+#   }
+#
+#   depends_on = [
+#     google_project_service.cloudbuild
+#   ]
+# }
 
 # Data sources
 data "google_project" "project" {
