@@ -363,18 +363,41 @@ CREATE TABLE IF NOT EXISTS technical_decisions (
 
 CREATE INDEX IF NOT EXISTS idx_decisions_repo_id ON technical_decisions(repo_id);
 
--- Reusable components table
+-- Reusable components table (extended schema for component sensibility)
 CREATE TABLE IF NOT EXISTS reusable_components (
     id SERIAL PRIMARY KEY,
     repo_id INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
     name VARCHAR(500) NOT NULL,
     purpose TEXT,
     location TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+
+    -- Component metadata
+    component_id TEXT UNIQUE,
+    component_type VARCHAR(50) DEFAULT 'unknown',
+    language VARCHAR(50) DEFAULT 'unknown',
+
+    -- Code analysis
+    api_signature TEXT,
+    imports JSONB DEFAULT '[]'::jsonb,
+    keywords JSONB DEFAULT '[]'::jsonb,
+    lines_of_code INTEGER DEFAULT 0,
+    cyclomatic_complexity FLOAT,
+    public_methods JSONB DEFAULT '[]'::jsonb,
+
+    -- Provenance tracking
+    first_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    derived_from TEXT,
+    sync_status VARCHAR(50) DEFAULT 'unknown',
+
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_components_repo_id ON reusable_components(repo_id);
 CREATE INDEX IF NOT EXISTS idx_components_name ON reusable_components(name);
+CREATE INDEX IF NOT EXISTS idx_components_component_id ON reusable_components(component_id);
+CREATE INDEX IF NOT EXISTS idx_components_type ON reusable_components(component_type);
+CREATE INDEX IF NOT EXISTS idx_components_language ON reusable_components(language);
 
 -- Keywords table (many-to-many with patterns)
 CREATE TABLE IF NOT EXISTS keywords (
