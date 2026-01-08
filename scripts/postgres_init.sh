@@ -237,7 +237,9 @@ default_text_search_config = 'pg_catalog.english'
 shared_preload_libraries = 'pg_stat_statements'
 EOF
 
-# Update pg_hba.conf for Cloud Run and external access
+# Update pg_hba.conf for Cloud Run access
+# Note: External IP access configuration should be done via post-deployment script
+# to avoid startup script complexity and failures
 cat > "$PG_HBA" <<EOF
 # TYPE  DATABASE        USER            ADDRESS                 METHOD
 
@@ -254,48 +256,6 @@ host    $DB_NAME        $DB_USER        10.0.0.0/8              scram-sha-256
 # Allow connections from VPC
 host    all             all             10.8.0.0/28             scram-sha-256
 EOF
-
-# Add external access rules if configured
-EXTERNAL_IPS='${allow_postgres_from_cidrs}'
-echo "===== Processing external PostgreSQL access configuration ====="
-echo "EXTERNAL_IPS value: $EXTERNAL_IPS"
-
-if [ "$EXTERNAL_IPS" != "[]" ] && [ -n "$EXTERNAL_IPS" ] && [ "$EXTERNAL_IPS" != "null" ]; then
-    echo "" >> "$PG_HBA"
-    echo "# External access (configured via allow_postgres_from_cidrs)" >> "$PG_HBA"
-
-    # Parse JSON array more robustly using Python if available
-    if command -v python3 &> /dev/null; then
-        echo "Using Python for JSON parsing"
-        python3 <<PYTHON_EOF
-import json
-try:
-    cidrs = json.loads('$EXTERNAL_IPS')
-    if cidrs and isinstance(cidrs, list):
-        with open('$PG_HBA', 'a') as f:
-            for cidr in cidrs:
-                line = f"host    all             all             {cidr}            md5\n"
-                f.write(line)
-                print(f"===== Added external PostgreSQL access for CIDR: {cidr} =====")
-    else:
-        print("No external CIDRs configured or invalid JSON")
-except json.JSONDecodeError as e:
-    print(f"Error parsing JSON: {e}")
-    print(f"Raw value: '$EXTERNAL_IPS'")
-PYTHON_EOF
-    else
-        echo "Python3 not available, using fallback grep parsing"
-        # Fallback for systems without python3
-        echo "$EXTERNAL_IPS" | tr ',' '\n' | grep -o '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*/[0-9]*' | while read -r cidr; do
-            if [ -n "$cidr" ]; then
-                echo "host    all             all             $cidr            md5" >> "$PG_HBA"
-                echo "===== Added external PostgreSQL access for CIDR: $cidr ====="
-            fi
-        done
-    fi
-else
-    echo "===== No external PostgreSQL access configured (allow_postgres_from_cidrs is empty) ====="
-fi
 
 # Set proper permissions
 chmod 600 "$PG_HBA"

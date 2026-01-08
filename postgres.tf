@@ -220,14 +220,13 @@ resource "google_compute_instance" "postgres" {
   }
 
   metadata_startup_script = templatefile("${path.module}/scripts/postgres_init.sh", {
-    db_name                    = var.postgres_db_name
-    db_user                    = var.postgres_db_user
-    db_password                = var.postgres_db_password
-    backup_bucket              = google_storage_bucket.postgres_backups.name
-    postgres_version           = var.postgres_version
-    enable_monitoring          = var.enable_postgres_monitoring
-    data_disk_device           = "sdb"
-    allow_postgres_from_cidrs  = jsonencode(var.allow_postgres_from_cidrs)
+    db_name           = var.postgres_db_name
+    db_user           = var.postgres_db_user
+    db_password       = var.postgres_db_password
+    backup_bucket     = google_storage_bucket.postgres_backups.name
+    postgres_version  = var.postgres_version
+    enable_monitoring = var.enable_postgres_monitoring
+    data_disk_device  = "sdb"
   })
 
   service_account {
