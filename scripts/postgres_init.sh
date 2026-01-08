@@ -237,7 +237,7 @@ default_text_search_config = 'pg_catalog.english'
 shared_preload_libraries = 'pg_stat_statements'
 EOF
 
-# Update pg_hba.conf for Cloud Run access
+# Update pg_hba.conf for Cloud Run and external access
 cat > "$PG_HBA" <<EOF
 # TYPE  DATABASE        USER            ADDRESS                 METHOD
 
@@ -254,6 +254,19 @@ host    $DB_NAME        $DB_USER        10.0.0.0/8              scram-sha-256
 # Allow connections from VPC
 host    all             all             10.8.0.0/28             scram-sha-256
 EOF
+
+# Add external access rules if configured
+EXTERNAL_IPS='${allow_postgres_from_cidrs}'
+if [ "$EXTERNAL_IPS" != "[]" ] && [ -n "$EXTERNAL_IPS" ]; then
+    echo "" >> "$PG_HBA"
+    echo "# External access (configured via allow_postgres_from_cidrs)" >> "$PG_HBA"
+
+    # Parse JSON array of CIDR blocks
+    echo "$EXTERNAL_IPS" | grep -o '"[^"]*"' | sed 's/"//g' | while read -r cidr; do
+        echo "host    all             all             $cidr            md5" >> "$PG_HBA"
+        echo "===== Added external PostgreSQL access for CIDR: $cidr ====="
+    done
+fi
 
 # Set proper permissions
 chmod 600 "$PG_HBA"

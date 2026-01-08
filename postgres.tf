@@ -42,7 +42,7 @@ resource "google_compute_subnetwork" "postgres_subnet" {
   }
 }
 
-# Firewall rule: Allow PostgreSQL from Cloud Run (via VPC connector)
+# Firewall rule: Allow PostgreSQL from Cloud Run (via VPC connector) and external sources
 resource "google_compute_firewall" "allow_postgres" {
   name    = "dev-nexus-allow-postgres"
   network = google_compute_network.postgres_network.name
@@ -52,11 +52,15 @@ resource "google_compute_firewall" "allow_postgres" {
     ports    = ["5432"]
   }
 
-  # Allow connections from the PostgreSQL subnet and the VPC connector CIDR
-  # Cloud Run egress via the VPC Access Connector will use addresses from
-  # `var.vpc_connector_cidr`, so include it here to permit Cloud Run -> VM traffic.
-  source_ranges = [var.postgres_subnet_cidr, var.vpc_connector_cidr]
-  target_tags   = ["postgres-server"]
+  # Allow connections from:
+  # 1. PostgreSQL subnet (VPC-internal)
+  # 2. VPC connector CIDR (Cloud Run -> PostgreSQL)
+  # 3. External sources (if configured via var.allow_postgres_from_cidrs)
+  source_ranges = concat(
+    [var.postgres_subnet_cidr, var.vpc_connector_cidr],
+    var.allow_postgres_from_cidrs
+  )
+  target_tags = ["postgres-server"]
 }
 
 # Firewall rule: Allow SSH for maintenance
@@ -203,6 +207,12 @@ resource "google_compute_instance" "postgres" {
   network_interface {
     subnetwork = google_compute_subnetwork.postgres_subnet.id
     network_ip = google_compute_address.postgres_ip.address
+
+    # Ephemeral external IPv4 address with Standard network service tier
+    access_config {
+      nat_ip        = ""  # Empty string = ephemeral IP (auto-assigned)
+      network_tier  = "STANDARD"
+    }
   }
 
   metadata = {
@@ -210,13 +220,14 @@ resource "google_compute_instance" "postgres" {
   }
 
   metadata_startup_script = templatefile("${path.module}/scripts/postgres_init.sh", {
-    db_name           = var.postgres_db_name
-    db_user           = var.postgres_db_user
-    db_password       = var.postgres_db_password
-    backup_bucket     = google_storage_bucket.postgres_backups.name
-    postgres_version  = var.postgres_version
-    enable_monitoring = var.enable_postgres_monitoring
-    data_disk_device  = "sdb"
+    db_name                    = var.postgres_db_name
+    db_user                    = var.postgres_db_user
+    db_password                = var.postgres_db_password
+    backup_bucket              = google_storage_bucket.postgres_backups.name
+    postgres_version           = var.postgres_version
+    enable_monitoring          = var.enable_postgres_monitoring
+    data_disk_device           = "sdb"
+    allow_postgres_from_cidrs  = jsonencode(var.allow_postgres_from_cidrs)
   })
 
   service_account {

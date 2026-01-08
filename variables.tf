@@ -295,6 +295,12 @@ variable "allow_ssh_from_cidrs" {
   default     = ["0.0.0.0/0"]  # Restrict in production!
 }
 
+variable "allow_postgres_from_cidrs" {
+  description = "List of CIDR ranges allowed to connect to PostgreSQL from external sources (e.g., your local IP). Format: '1.2.3.4/32' for single IP. Leave empty to allow only internal VPC access."
+  type        = list(string)
+  default     = []
+}
+
 variable "backup_retention_days" {
   description = "Number of days to retain PostgreSQL backups"
   type        = number
