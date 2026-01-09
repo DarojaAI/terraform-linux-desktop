@@ -230,7 +230,7 @@ PSQL_EOF
 echo ""
 echo "===== Initializing database schema ====="
 
-sudo -u postgres psql -d $DB_NAME <<'SCHEMA_EOF'
+sudo -u postgres psql -d $DB_NAME <<SCHEMA_EOF
 -- ====================================
 -- Dev Nexus Database Schema v1.0
 -- With pgvector support for embeddings
