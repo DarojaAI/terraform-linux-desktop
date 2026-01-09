@@ -69,6 +69,7 @@ allowed_origin_regex = "https://dev-nexus\\.example\\.com|https://.*-prod\\.verc
 
 orchestrator_url = "https://orchestrator-prod.run.app"  # Add production orchestrator URL
 log_attacker_url = "https://log-attacker-prod.run.app"  # Add production log-attacker URL
+pattern_miner_url = "https://pattern-miner-prod.run.app"  # Add production pattern-miner URL
 
 # ====================================
 # Monitoring

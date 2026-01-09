@@ -69,6 +69,7 @@ allowed_origin_regex = "https://.*-milan-patels-projects-187b35de\\.vercel\\.app
 
 orchestrator_url = ""  # Add staging orchestrator URL when available
 log_attacker_url = ""  # Add staging log-attacker URL when available
+pattern_miner_url = ""  # Add staging pattern-miner URL when available
 
 # ====================================
 # Monitoring

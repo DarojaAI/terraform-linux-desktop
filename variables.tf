@@ -165,6 +165,12 @@ variable "log_attacker_url" {
   default     = ""
 }
 
+variable "pattern_miner_url" {
+  description = "URL of pattern-miner service (optional)"
+  type        = string
+  default     = ""
+}
+
 variable "allowed_origin_regex" {
   description = "A regex to match allowed origins for CORS."
   type        = string

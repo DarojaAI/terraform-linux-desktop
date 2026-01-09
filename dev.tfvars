@@ -66,6 +66,7 @@ allowed_origin_regex = "https://.*-milan-patels-projects-187b35de\\.vercel\\.app
 
 orchestrator_url = ""  # Add if orchestrator-dev service exists
 log_attacker_url = ""  # Add if log-attacker-dev service exists
+pattern_miner_url = ""  # Add if pattern-miner-dev service exists
 
 # ====================================
 # Monitoring

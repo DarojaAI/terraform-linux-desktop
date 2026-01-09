@@ -286,6 +286,14 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
           value = var.log_attacker_url
         }
       }
+
+      dynamic "env" {
+        for_each = var.pattern_miner_url != "" ? [1] : []
+        content {
+          name  = "PATTERN_MINER_URL"
+          value = var.pattern_miner_url
+        }
+      }
     }
 
     service_account = data.google_compute_default_service_account.default.email
