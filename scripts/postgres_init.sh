@@ -123,24 +123,55 @@ psql --version
 echo ""
 echo "===== Installing pgvector extension ====="
 
-# Try to create the extension from distribution packages first
-# pgvector is available in PostgreSQL contrib on newer versions
-if ! sudo -u postgres psql -d postgres -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>/dev/null; then
-    echo "WARNING: pgvector extension not available in contrib, building from source..."
+# Install postgresql-contrib first (has pgvector for PostgreSQL 15+)
+apt-get update -qq > /dev/null 2>&1 || true
+apt-get install -y postgresql-$POSTGRES_VERSION-contrib > /dev/null 2>&1 || echo "WARNING: Could not install postgresql-contrib"
 
-    # Build from source if needed
-    apt-get install -y postgresql-$POSTGRES_VERSION-contrib || echo "WARNING: Could not install contrib"
+# Restart PostgreSQL to load any new extensions
+systemctl restart postgresql || true
+sleep 2
 
-    if command -v pgxs-config &> /dev/null; then
-        mkdir -p /tmp/pgvector
-        cd /tmp/pgvector
-        curl -sL https://github.com/pgvector/pgvector/archive/v0.5.0.tar.gz | tar xz
+# Try to create the extension
+PGVECTOR_CREATE_OUTPUT=$(sudo -u postgres psql -d postgres -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>&1)
+PGVECTOR_EXIT_CODE=$?
+
+if [ $PGVECTOR_EXIT_CODE -eq 0 ]; then
+    echo "✓ pgvector extension created successfully"
+else
+    echo "WARNING: pgvector extension creation failed: $PGVECTOR_CREATE_OUTPUT"
+    echo "Attempting to build pgvector from source..."
+
+    # Install build dependencies
+    apt-get install -y build-essential postgresql-server-dev-$POSTGRES_VERSION > /dev/null 2>&1 || echo "WARNING: Could not install build tools"
+
+    # Build from source
+    mkdir -p /tmp/pgvector
+    cd /tmp/pgvector
+    if curl -sL https://github.com/pgvector/pgvector/archive/v0.5.0.tar.gz | tar xz; then
         cd pgvector-0.5.0
-        make
-        sudo make install || echo "WARNING: pgvector make install failed"
+        if make && sudo make install; then
+            echo "✓ pgvector built and installed from source"
+            # Reload PostgreSQL
+            systemctl restart postgresql || true
+            sleep 2
+            # Try creating extension again
+            sudo -u postgres psql -d postgres -c "CREATE EXTENSION IF NOT EXISTS vector;" || echo "WARNING: pgvector extension still failed after source build"
+        else
+            echo "ERROR: pgvector source build failed"
+        fi
         cd /
         rm -rf /tmp/pgvector
+    else
+        echo "ERROR: Failed to download pgvector source"
     fi
+fi
+
+# Verify pgvector is available
+PGVECTOR_CHECK=$(sudo -u postgres psql -d postgres -c "SELECT extversion FROM pg_extension WHERE extname = 'vector';" 2>&1)
+if echo "$PGVECTOR_CHECK" | grep -q '^[0-9]'; then
+    echo "✓ pgvector extension verified: $PGVECTOR_CHECK"
+else
+    echo "WARNING: pgvector extension not found or not available: $PGVECTOR_CHECK"
 fi
 
 # ============================================
@@ -306,7 +337,25 @@ PSQL_EOF
 echo ""
 echo "===== Initializing database schema ====="
 
-sudo -u postgres psql -d $DB_NAME <<SCHEMA_EOF
+# First, ensure pgvector extension exists in the target database
+echo "Ensuring pgvector extension in target database..."
+PGVECTOR_DB_OUTPUT=$(sudo -u postgres psql -d $DB_NAME -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>&1)
+PGVECTOR_DB_EXIT=$?
+
+if [ $PGVECTOR_DB_EXIT -eq 0 ]; then
+    echo "✓ pgvector extension available in target database"
+else
+    # Check if error is just "already exists"
+    if echo "$PGVECTOR_DB_OUTPUT" | grep -q "already exists"; then
+        echo "✓ pgvector extension already exists in target database"
+    else
+        echo "WARNING: pgvector extension may not be available: $PGVECTOR_DB_OUTPUT"
+        echo "Continuing with schema creation - tables without vector type will work"
+    fi
+fi
+
+# Now create the schema
+SCHEMA_OUTPUT=$(sudo -u postgres psql -d $DB_NAME <<SCHEMA_EOF 2>&1
 -- ====================================
 -- Dev Nexus Database Schema v1.0
 -- With pgvector support for embeddings
@@ -537,8 +586,50 @@ CREATE INDEX IF NOT EXISTS idx_lessons_description_fts ON lessons_learned USING 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;
 SCHEMA_EOF
+)
 
-echo "Schema initialization complete"
+SCHEMA_EXIT_CODE=$?
+
+if [ $SCHEMA_EXIT_CODE -eq 0 ]; then
+    echo "✓ Schema initialization complete"
+else
+    echo "ERROR: Schema initialization failed with exit code $SCHEMA_EXIT_CODE"
+    echo "Schema output:"
+    echo "$SCHEMA_OUTPUT"
+    echo ""
+
+    # Check if the error is pgvector-related
+    if echo "$SCHEMA_OUTPUT" | grep -q "type.*vector.*does not exist\|unknown type.*vector"; then
+        echo "ERROR: pgvector extension is not available!"
+        echo ""
+        echo "This error occurred when trying to create the patterns table with vector(1536) type."
+        echo "Cause: pgvector extension was not successfully installed on the system."
+        echo ""
+        echo "The startup script attempted to install/build pgvector, but it failed."
+        echo ""
+        echo "Troubleshooting steps:"
+        echo "1. SSH into the PostgreSQL VM and check startup logs:"
+        echo "   sudo tail -200 /var/log/postgres-setup.log | grep -A5 -B5 pgvector"
+        echo ""
+        echo "2. Verify PostgreSQL is running:"
+        echo "   sudo systemctl status postgresql"
+        echo ""
+        echo "3. Check if pgvector can be created manually:"
+        echo "   sudo -u postgres psql -d postgres -c \"CREATE EXTENSION vector;\""
+        echo ""
+        echo "4. Check PostgreSQL system logs:"
+        echo "   sudo tail -100 /var/log/postgresql/postgresql-15-main.log"
+        echo ""
+        echo "5. If pgvector is not installed, you may need to:"
+        echo "   - Install postgresql-contrib: sudo apt-get install postgresql-15-contrib"
+        echo "   - Or manually build pgvector from source"
+        exit 1
+    else
+        echo "This appears to be a different schema creation error."
+        echo "Check the output above for details."
+        exit 1
+    fi
+fi
 
 # Enable PostgreSQL to start on boot
 systemctl enable postgresql
