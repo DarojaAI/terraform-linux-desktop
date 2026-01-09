@@ -71,6 +71,12 @@ else
     # Mount the disk
     mount "$MOUNT_POINT" 2>/dev/null || echo "WARNING: mount may have failed (might already be mounted)"
 
+    # Add to fstab for persistent mounting across reboots
+    if ! grep -q "$DISK_PATH" /etc/fstab; then
+        echo "Adding disk to fstab for persistent mounting..."
+        echo "$DISK_PATH $MOUNT_POINT ext4 defaults,nofail 0 2" >> /etc/fstab
+    fi
+
     # Verify mount
     if mountpoint -q "$MOUNT_POINT"; then
         echo "Disk successfully mounted to $MOUNT_POINT"
@@ -205,17 +211,61 @@ EOF
 chmod 600 "$PG_HBA"
 chown postgres:postgres "$PG_HBA"
 
-# Configure postgresql.conf for remote connections
+# Configure postgresql.conf for remote connections and performance
 echo "Configuring postgresql.conf..."
 cat >> "$PG_CONF" <<'EOF'
 
+# ====================================
 # Dev Nexus Configuration
+# ====================================
+
+# Connection Settings
 listen_addresses = '*'
 max_connections = 100
+superuser_reserved_connections = 3
+
+# Memory Settings (optimized for e2-micro: 1GB RAM)
 shared_buffers = 256MB
 effective_cache_size = 768MB
 maintenance_work_mem = 64MB
 work_mem = 4MB
+
+# Write-Ahead Log
+wal_buffers = 8MB
+max_wal_size = 1GB
+min_wal_size = 80MB
+checkpoint_completion_target = 0.9
+
+# Query Planning
+random_page_cost = 1.1
+effective_io_concurrency = 200
+
+# Logging (for debugging and monitoring)
+logging_collector = on
+log_directory = 'log'
+log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+log_rotation_age = 1d
+log_rotation_size = 100MB
+log_min_duration_statement = 1000
+log_line_prefix = '%m [%p] %u@%d '
+log_timezone = 'UTC'
+
+# Autovacuum (important for maintaining vector indices and performance)
+autovacuum = on
+autovacuum_max_workers = 2
+autovacuum_naptime = 30s
+
+# Locale and Timezone
+datestyle = 'iso, mdy'
+timezone = 'UTC'
+lc_messages = 'en_US.UTF-8'
+lc_monetary = 'en_US.UTF-8'
+lc_numeric = 'en_US.UTF-8'
+lc_time = 'en_US.UTF-8'
+default_text_search_config = 'pg_catalog.english'
+
+# Preload libraries for performance
+shared_preload_libraries = 'pg_stat_statements'
 EOF
 
 # ============================================
