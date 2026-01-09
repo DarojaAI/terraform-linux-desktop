@@ -513,19 +513,23 @@ CREATE INDEX IF NOT EXISTS idx_lessons_category ON lessons_learned(category);
 CREATE INDEX IF NOT EXISTS idx_lessons_date ON lessons_learned(date);
 
 -- Analysis history (for tracking changes over time)
+-- Extended to track both pattern analysis and component scans via scan_type field
 CREATE TABLE IF NOT EXISTS analysis_history (
     id SERIAL PRIMARY KEY,
     repo_id INTEGER REFERENCES repositories(id) ON DELETE CASCADE,
+    scan_type VARCHAR(50) DEFAULT 'pattern',  -- 'pattern' for pattern analysis, 'component' for component scans
     commit_sha VARCHAR(40),
     analyzed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     patterns_count INTEGER DEFAULT 0,
     decisions_count INTEGER DEFAULT 0,
-    components_count INTEGER DEFAULT 0
+    components_count INTEGER DEFAULT 0,
+    vectors_generated INTEGER DEFAULT 0     -- For component scans: number of vectors created
 );
 
 CREATE INDEX IF NOT EXISTS idx_history_repo_id ON analysis_history(repo_id);
 CREATE INDEX IF NOT EXISTS idx_history_analyzed_at ON analysis_history(analyzed_at);
 CREATE INDEX IF NOT EXISTS idx_history_commit_sha ON analysis_history(commit_sha);
+CREATE INDEX IF NOT EXISTS idx_history_scan_type ON analysis_history(scan_type);  -- For filtering by scan type
 
 -- Testing information
 CREATE TABLE IF NOT EXISTS test_frameworks (
