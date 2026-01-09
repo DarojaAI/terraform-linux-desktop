@@ -112,6 +112,32 @@ echo "PostgreSQL installed successfully"
 psql --version
 
 # ============================================
+# Step 3b: Install pgvector Extension
+# ============================================
+echo ""
+echo "===== Installing pgvector extension ====="
+
+# Try to create the extension from distribution packages first
+# pgvector is available in PostgreSQL contrib on newer versions
+if ! sudo -u postgres psql -d postgres -c "CREATE EXTENSION IF NOT EXISTS vector;" 2>/dev/null; then
+    echo "WARNING: pgvector extension not available in contrib, building from source..."
+
+    # Build from source if needed
+    apt-get install -y postgresql-$POSTGRES_VERSION-contrib || echo "WARNING: Could not install contrib"
+
+    if command -v pgxs-config &> /dev/null; then
+        mkdir -p /tmp/pgvector
+        cd /tmp/pgvector
+        curl -sL https://github.com/pgvector/pgvector/archive/v0.5.0.tar.gz | tar xz
+        cd pgvector-0.5.0
+        make
+        sudo make install || echo "WARNING: pgvector make install failed"
+        cd /
+        rm -rf /tmp/pgvector
+    fi
+fi
+
+# ============================================
 # Step 4: Configure PostgreSQL Data Directory
 # ============================================
 echo ""
@@ -235,6 +261,9 @@ sudo -u postgres psql -d $DB_NAME <<SCHEMA_EOF
 -- Dev Nexus Database Schema v1.0
 -- With pgvector support for embeddings
 -- ====================================
+
+-- Enable pgvector extension
+CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Repositories table
 CREATE TABLE IF NOT EXISTS repositories (
