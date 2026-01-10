@@ -53,9 +53,21 @@ MOUNT_POINT="/mnt/postgres-data"
 
 echo "Checking for disk: $DISK_PATH"
 
+# Retry logic: disk might not be immediately available during startup
+RETRY_COUNT=0
+MAX_RETRIES=30
+RETRY_DELAY=2
+
+while [ ! -b "$DISK_PATH" ] && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    echo "Disk $DISK_PATH not found yet (attempt $((RETRY_COUNT+1))/$MAX_RETRIES). Waiting ${RETRY_DELAY}s..."
+    sleep $RETRY_DELAY
+    RETRY_COUNT=$((RETRY_COUNT+1))
+done
+
 if [ ! -b "$DISK_PATH" ]; then
-    echo "WARNING: Disk $DISK_PATH not found - skipping mount"
+    echo "ERROR: Disk $DISK_PATH not found after $MAX_RETRIES retries - PostgreSQL data will be on boot disk (data loss on VM recreation!)"
 else
+    echo "Disk found after $RETRY_COUNT retries"
     echo "Disk found, proceeding with mount..."
 
     mkdir -p "$MOUNT_POINT"
