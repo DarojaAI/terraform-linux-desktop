@@ -59,7 +59,7 @@ MAX_RETRIES=30
 RETRY_DELAY=2
 
 while [ ! -b "$DISK_PATH" ] && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    echo "Disk $DISK_PATH not found yet (attempt $((RETRY_COUNT+1))/$MAX_RETRIES). Waiting ${RETRY_DELAY}s..."
+    echo "Disk $DISK_PATH not found yet (attempt $((RETRY_COUNT+1))/$MAX_RETRIES). Waiting $${RETRY_DELAY}s..."
     sleep $RETRY_DELAY
     RETRY_COUNT=$((RETRY_COUNT+1))
 done
