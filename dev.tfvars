@@ -65,16 +65,17 @@ allowed_origin_regex = "https://.*-milan-patels-projects-187b35de\\.vercel\\.app
 # ====================================
 
 # External A2A Agent URLs and Tokens
-# To enable pattern-miner for vector generation, set both pattern_miner_url and pattern_miner_token
+# To enable pattern-miner for vector generation, set pattern_miner_url
+# Tokens are optional (not currently required by services)
 # Example:
 #   pattern_miner_url = "https://pattern-miner.run.app"
-#   pattern_miner_token = "sk-xxx-yyy-zzz"
+#   pattern_miner_token = ""  # Leave empty, not required yet
 
 orchestrator_url      = ""  # Add if orchestrator-dev service exists
-orchestrator_token    = ""  # Required if orchestrator_url is set
+orchestrator_token    = ""  # Optional, not currently required
 log_attacker_url      = ""  # Add if log-attacker-dev service exists
 pattern_miner_url     = ""  # Add if pattern-miner-dev service exists
-pattern_miner_token   = ""  # Required if pattern_miner_url is set
+pattern_miner_token   = ""  # Optional, not currently required
 
 # ====================================
 # Monitoring

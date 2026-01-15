@@ -172,14 +172,14 @@ variable "pattern_miner_url" {
 }
 
 variable "pattern_miner_token" {
-  description = "Authentication token for pattern-miner service (optional, required if pattern_miner_url is set)"
+  description = "Authentication token for pattern-miner service (optional - not currently required, auth not implemented in pattern-miner yet)"
   type        = string
   sensitive   = true
   default     = ""
 }
 
 variable "orchestrator_token" {
-  description = "Authentication token for dependency-orchestrator service (optional, required if orchestrator_url is set)"
+  description = "Authentication token for dependency-orchestrator service (optional - not currently required, auth not implemented yet)"
   type        = string
   sensitive   = true
   default     = ""
