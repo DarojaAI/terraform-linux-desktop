@@ -171,6 +171,20 @@ variable "pattern_miner_url" {
   default     = ""
 }
 
+variable "pattern_miner_token" {
+  description = "Authentication token for pattern-miner service (optional, required if pattern_miner_url is set)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "orchestrator_token" {
+  description = "Authentication token for dependency-orchestrator service (optional, required if orchestrator_url is set)"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "allowed_origin_regex" {
   description = "A regex to match allowed origins for CORS."
   type        = string

@@ -84,6 +84,42 @@ resource "google_secret_manager_secret_version" "anthropic_api_key" {
   secret_data = var.anthropic_api_key
 }
 
+# External A2A Agent Tokens (optional - only created if tokens are provided)
+
+resource "google_secret_manager_secret" "pattern_miner_token" {
+  count     = var.pattern_miner_token != "" ? 1 : 0
+  secret_id = "${var.secret_prefix}_PATTERN_MINER_TOKEN"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "pattern_miner_token" {
+  count       = var.pattern_miner_token != "" ? 1 : 0
+  secret      = google_secret_manager_secret.pattern_miner_token[0].id
+  secret_data = var.pattern_miner_token
+}
+
+resource "google_secret_manager_secret" "orchestrator_token" {
+  count     = var.orchestrator_token != "" ? 1 : 0
+  secret_id = "${var.secret_prefix}_ORCHESTRATOR_TOKEN"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "orchestrator_token" {
+  count       = var.orchestrator_token != "" ? 1 : 0
+  secret      = google_secret_manager_secret.orchestrator_token[0].id
+  secret_data = var.orchestrator_token
+}
+
 # Grant Cloud Run service account access to secrets
 resource "google_secret_manager_secret_iam_member" "github_token_access" {
   secret_id = google_secret_manager_secret.github_token.id
@@ -93,6 +129,20 @@ resource "google_secret_manager_secret_iam_member" "github_token_access" {
 
 resource "google_secret_manager_secret_iam_member" "anthropic_key_access" {
   secret_id = google_secret_manager_secret.anthropic_api_key.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_secret_manager_secret_iam_member" "pattern_miner_token_access" {
+  count     = var.pattern_miner_token != "" ? 1 : 0
+  secret_id = google_secret_manager_secret.pattern_miner_token[0].id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_secret_manager_secret_iam_member" "orchestrator_token_access" {
+  count     = var.orchestrator_token != "" ? 1 : 0
+  secret_id = google_secret_manager_secret.orchestrator_token[0].id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
 }
@@ -292,6 +342,33 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
         content {
           name  = "PATTERN_MINER_URL"
           value = var.pattern_miner_url
+        }
+      }
+
+      # Optional: External agent authentication tokens
+      dynamic "env" {
+        for_each = var.orchestrator_token != "" ? [1] : []
+        content {
+          name = "ORCHESTRATOR_TOKEN"
+          value_source {
+            secret_key_ref {
+              secret  = google_secret_manager_secret.orchestrator_token[0].secret_id
+              version = "latest"
+            }
+          }
+        }
+      }
+
+      dynamic "env" {
+        for_each = var.pattern_miner_token != "" ? [1] : []
+        content {
+          name = "PATTERN_MINER_TOKEN"
+          value_source {
+            secret_key_ref {
+              secret  = google_secret_manager_secret.pattern_miner_token[0].secret_id
+              version = "latest"
+            }
+          }
         }
       }
     }

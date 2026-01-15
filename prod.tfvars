@@ -67,9 +67,16 @@ allowed_origin_regex = "https://dev-nexus\\.example\\.com|https://.*-prod\\.verc
 # Integration
 # ====================================
 
-orchestrator_url = "https://orchestrator-prod.run.app"  # Add production orchestrator URL
-log_attacker_url = "https://log-attacker-prod.run.app"  # Add production log-attacker URL
-pattern_miner_url = "https://pattern-miner-prod.run.app"  # Add production pattern-miner URL
+# External A2A Agent URLs and Tokens (required for production)
+# IMPORTANT: Get tokens from GCP Secret Manager:
+#   gcloud secrets versions access latest --secret="dev-nexus-prod_ORCHESTRATOR_TOKEN"
+#   gcloud secrets versions access latest --secret="dev-nexus-prod_PATTERN_MINER_TOKEN"
+
+orchestrator_url    = "https://orchestrator-prod.run.app"     # Production orchestrator URL
+orchestrator_token  = ""                                       # Get from Secret Manager
+log_attacker_url    = "https://log-attacker-prod.run.app"     # Production log-attacker URL
+pattern_miner_url   = "https://pattern-miner-prod.run.app"    # Production pattern-miner URL
+pattern_miner_token = ""                                       # Get from Secret Manager
 
 # ====================================
 # Monitoring

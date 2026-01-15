@@ -67,9 +67,17 @@ allowed_origin_regex = "https://.*-milan-patels-projects-187b35de\\.vercel\\.app
 # Integration
 # ====================================
 
-orchestrator_url = ""  # Add staging orchestrator URL when available
-log_attacker_url = ""  # Add staging log-attacker URL when available
-pattern_miner_url = ""  # Add staging pattern-miner URL when available
+# External A2A Agent URLs and Tokens
+# To enable pattern-miner for vector generation, set both pattern_miner_url and pattern_miner_token
+# Example:
+#   pattern_miner_url = "https://pattern-miner-staging.run.app"
+#   pattern_miner_token = "sk-xxx-yyy-zzz"
+
+orchestrator_url    = ""  # Add staging orchestrator URL when available
+orchestrator_token  = ""  # Required if orchestrator_url is set
+log_attacker_url    = ""  # Add staging log-attacker URL when available
+pattern_miner_url   = ""  # Add staging pattern-miner URL when available
+pattern_miner_token = ""  # Required if pattern_miner_url is set
 
 # ====================================
 # Monitoring
