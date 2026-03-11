@@ -45,6 +45,46 @@ variable "github_token" {
   sensitive   = true
 }
 
+variable "github_client_id" {
+  description = "GitHub OAuth App client ID for user authentication"
+  type        = string
+  sensitive   = true
+}
+
+variable "github_client_secret" {
+  description = "GitHub OAuth App client secret for user authentication"
+  type        = string
+  sensitive   = true
+}
+
+variable "jwt_secret" {
+  description = "Secret key for signing JWT tokens (minimum 32 characters)"
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = length(var.jwt_secret) >= 32
+    error_message = "JWT_SECRET must be at least 32 characters for security."
+  }
+}
+
+variable "frontend_url" {
+  description = "Frontend URL for OAuth callback redirects (e.g., https://your-app.vercel.app)"
+  type        = string
+  default     = ""
+}
+
+variable "jwt_expire_hours" {
+  description = "Hours until JWT token expires"
+  type        = number
+  default     = 8
+
+  validation {
+    condition     = var.jwt_expire_hours >= 1 && var.jwt_expire_hours <= 72
+    error_message = "JWT_EXPIRE_HOURS must be between 1 and 72 hours."
+  }
+}
+
 variable "anthropic_api_key" {
   description = "Anthropic API key for Claude"
   type        = string

@@ -61,6 +61,8 @@ resource "google_secret_manager_secret" "github_token" {
     auto {}
   }
 
+  labels = var.labels
+
   depends_on = [google_project_service.secretmanager]
 }
 
@@ -69,12 +71,67 @@ resource "google_secret_manager_secret_version" "github_token" {
   secret_data = var.github_token
 }
 
+# GitHub OAuth secrets
+resource "google_secret_manager_secret" "github_client_id" {
+  secret_id = "${var.secret_prefix}_GITHUB_CLIENT_ID"
+
+  replication {
+    auto {}
+  }
+
+  labels = var.labels
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "github_client_id" {
+  secret      = google_secret_manager_secret.github_client_id.id
+  secret_data = var.github_client_id
+}
+
+resource "google_secret_manager_secret" "github_client_secret" {
+  secret_id = "${var.secret_prefix}_GITHUB_CLIENT_SECRET"
+
+  replication {
+    auto {}
+  }
+
+  labels = var.labels
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "github_client_secret" {
+  secret      = google_secret_manager_secret.github_client_secret.id
+  secret_data = var.github_client_secret
+}
+
+# JWT secret for token signing
+resource "google_secret_manager_secret" "jwt_secret" {
+  secret_id = "${var.secret_prefix}_JWT_SECRET"
+
+  replication {
+    auto {}
+  }
+
+  labels = var.labels
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "jwt_secret" {
+  secret      = google_secret_manager_secret.jwt_secret.id
+  secret_data = var.jwt_secret
+}
+
 resource "google_secret_manager_secret" "anthropic_api_key" {
   secret_id = "${var.secret_prefix}_ANTHROPIC_API_KEY"
 
   replication {
     auto {}
   }
+
+  labels = var.labels
 
   depends_on = [google_project_service.secretmanager]
 }
@@ -94,6 +151,8 @@ resource "google_secret_manager_secret" "pattern_miner_token" {
     auto {}
   }
 
+  labels = var.labels
+
   depends_on = [google_project_service.secretmanager]
 }
 
@@ -111,6 +170,8 @@ resource "google_secret_manager_secret" "orchestrator_token" {
     auto {}
   }
 
+  labels = var.labels
+
   depends_on = [google_project_service.secretmanager]
 }
 
@@ -123,6 +184,24 @@ resource "google_secret_manager_secret_version" "orchestrator_token" {
 # Grant Cloud Run service account access to secrets
 resource "google_secret_manager_secret_iam_member" "github_token_access" {
   secret_id = google_secret_manager_secret.github_token.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_secret_manager_secret_iam_member" "github_client_id_access" {
+  secret_id = google_secret_manager_secret.github_client_id.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_secret_manager_secret_iam_member" "github_client_secret_access" {
+  secret_id = google_secret_manager_secret.github_client_secret.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_secret_manager_secret_iam_member" "jwt_secret_access" {
+  secret_id = google_secret_manager_secret.jwt_secret.id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
 }
@@ -185,7 +264,10 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
     google_compute_instance.postgres,
     null_resource.docker_build,
     google_secret_manager_secret_iam_member.github_token_access,
-    google_secret_manager_secret_iam_member.anthropic_key_access
+    google_secret_manager_secret_iam_member.anthropic_key_access,
+    google_secret_manager_secret_iam_member.github_client_id_access,
+    google_secret_manager_secret_iam_member.github_client_secret_access,
+    google_secret_manager_secret_iam_member.jwt_secret_access
   ]
 
   template {
@@ -318,6 +400,51 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       env {
         name  = "ALLOWED_ORIGIN_REGEX"
         value = var.allowed_origin_regex
+      }
+
+      # GitHub OAuth configuration
+      env {
+        name = "GITHUB_CLIENT_ID"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.github_client_id.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "GITHUB_CLIENT_SECRET"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.github_client_secret.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name = "JWT_SECRET"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.jwt_secret.secret_id
+            version = "latest"
+          }
+        }
+      }
+
+      env {
+        name  = "JWT_EXPIRE_HOURS"
+        value = tostring(var.jwt_expire_hours)
+      }
+
+      # Frontend URL for OAuth callback (not sensitive, plain env var)
+      dynamic "env" {
+        for_each = var.frontend_url != "" ? [1] : []
+        content {
+          name  = "FRONTEND_URL"
+          value = var.frontend_url
+        }
       }
 
       # Optional: External agent URLs

@@ -17,6 +17,23 @@ github_token = "ghp_xxxxxxxxxxxxxxxxxxxxx"
 # Get from: https://console.anthropic.com
 anthropic_api_key = "sk-ant-xxxxxxxxxxxxxxxxxxxxx"
 
+# GitHub OAuth App credentials (for user authentication)
+# Get from: https://github.com/settings/developers
+# Create an OAuth App and use the Client ID and Client Secret
+github_client_id     = "your-github-oauth-client-id"
+github_client_secret = "your-github-oauth-client-secret"
+
+# JWT secret for signing OAuth tokens (minimum 32 characters)
+# Generate with: openssl rand -base64 32
+jwt_secret = "your-jwt-secret-at-least-32-characters-long"
+
+# Frontend URL for OAuth callback redirects
+# Set to your Vercel/frontend URL (e.g., https://your-app.vercel.app)
+frontend_url = "http://localhost:3000"
+
+# JWT token expiration (hours)
+jwt_expire_hours = 8
+
 # Knowledge base repository (format: owner/repo)
 knowledge_base_repo = "your-username/dev-nexus"
 
