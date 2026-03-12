@@ -29,6 +29,15 @@ anthropic_api_key = "sk-ant-dev-placeholder"          # Replace with actual key 
 postgres_db_password = "dev-db-password-placeholder"  # Replace with actual password from Secret Manager
 
 # ====================================
+# LangSmith Configuration (LLM Observability)
+# ====================================
+
+langsmith_api_key           = ""  # Get from https://smith.langchain.com/
+langsmith_project           = "dev-nexus-dev"
+langsmith_tracing_enabled   = false
+langsmith_endpoint          = "https://api.smith.langchain.com"
+
+# ====================================
 # Knowledge Base
 # ====================================
 

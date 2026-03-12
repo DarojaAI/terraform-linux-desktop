@@ -32,6 +32,15 @@ anthropic_api_key = "staging_anthropic_key_from_secret_manager"
 postgres_db_password = "staging_db_password_from_secret_manager"
 
 # ====================================
+# LangSmith Configuration (LLM Observability)
+# ====================================
+
+langsmith_api_key           = ""  # Get from https://smith.langchain.com/
+langsmith_project           = "dev-nexus-staging"
+langsmith_tracing_enabled   = false
+langsmith_endpoint          = "https://api.smith.langchain.com"
+
+# ====================================
 # Knowledge Base
 # ====================================
 

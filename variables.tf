@@ -91,6 +91,35 @@ variable "anthropic_api_key" {
   sensitive   = true
 }
 
+# ====================================
+# LangSmith Configuration
+# ====================================
+
+variable "langsmith_api_key" {
+  description = "LangSmith API key for LLM observability and tracing"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "langsmith_project" {
+  description = "LangSmith project name for organizing traces (e.g., 'dev-nexus-prod')"
+  type        = string
+  default     = "dev-nexus"
+}
+
+variable "langsmith_tracing_enabled" {
+  description = "Enable LangSmith tracing (true/false)"
+  type        = bool
+  default     = false
+}
+
+variable "langsmith_endpoint" {
+  description = "LangSmith API endpoint (default: https://api.smith.langchain.com)"
+  type        = string
+  default     = "https://api.smith.langchain.com"
+}
+
 variable "knowledge_base_repo" {
   description = "GitHub repository for knowledge base storage (format: owner/repo)"
   type        = string

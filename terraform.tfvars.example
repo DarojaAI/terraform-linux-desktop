@@ -17,6 +17,23 @@ github_token = "ghp_xxxxxxxxxxxxxxxxxxxxx"
 # Get from: https://console.anthropic.com
 anthropic_api_key = "sk-ant-xxxxxxxxxxxxxxxxxxxxx"
 
+# ====================================
+# OPTIONAL: LangSmith Configuration
+# ====================================
+# LangSmith API key for LLM observability and tracing
+# Get from: https://smith.langchain.com/
+# Leave empty to disable LangSmith integration
+langsmith_api_key = ""
+
+# LangSmith project name for organizing traces
+langsmith_project = "dev-nexus"
+
+# Enable LangSmith tracing (set to true after configuring API key)
+langsmith_tracing_enabled = false
+
+# LangSmith API endpoint (usually no need to change)
+langsmith_endpoint = "https://api.smith.langchain.com"
+
 # GitHub OAuth App credentials (for user authentication)
 # Get from: https://github.com/settings/developers
 # Create an OAuth App and use the Client ID and Client Secret

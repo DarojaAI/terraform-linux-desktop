@@ -141,6 +141,26 @@ resource "google_secret_manager_secret_version" "anthropic_api_key" {
   secret_data = var.anthropic_api_key
 }
 
+# LangSmith API Key (optional - only created if API key is provided)
+resource "google_secret_manager_secret" "langsmith_api_key" {
+  count     = var.langsmith_api_key != "" ? 1 : 0
+  secret_id = "${var.secret_prefix}_LANGSMITH_API_KEY"
+
+  replication {
+    auto {}
+  }
+
+  labels = var.labels
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "langsmith_api_key" {
+  count       = var.langsmith_api_key != "" ? 1 : 0
+  secret      = google_secret_manager_secret.langsmith_api_key[0].id
+  secret_data = var.langsmith_api_key
+}
+
 # External A2A Agent Tokens (optional - only created if tokens are provided)
 
 resource "google_secret_manager_secret" "pattern_miner_token" {
@@ -208,6 +228,13 @@ resource "google_secret_manager_secret_iam_member" "jwt_secret_access" {
 
 resource "google_secret_manager_secret_iam_member" "anthropic_key_access" {
   secret_id = google_secret_manager_secret.anthropic_api_key.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+}
+
+resource "google_secret_manager_secret_iam_member" "langsmith_api_key_access" {
+  count     = var.langsmith_api_key != "" ? 1 : 0
+  secret_id = google_secret_manager_secret.langsmith_api_key[0].id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
 }
@@ -436,6 +463,35 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       env {
         name  = "JWT_EXPIRE_HOURS"
         value = tostring(var.jwt_expire_hours)
+      }
+
+      # LangSmith Configuration (LLM Observability)
+      dynamic "env" {
+        for_each = var.langsmith_api_key != "" ? [1] : []
+        content {
+          name = "LANGSMITH_API_KEY"
+          value_source {
+            secret_key_ref {
+              secret  = google_secret_manager_secret.langsmith_api_key[0].secret_id
+              version = "latest"
+            }
+          }
+        }
+      }
+
+      env {
+        name  = "LANGSMITH_PROJECT"
+        value = var.langsmith_project
+      }
+
+      env {
+        name  = "LANGSMITH_TRACING"
+        value = tostring(var.langsmith_tracing_enabled)
+      }
+
+      env {
+        name  = "LANGSMITH_ENDPOINT"
+        value = var.langsmith_endpoint
       }
 
       # Frontend URL for OAuth callback (not sensitive, plain env var)
