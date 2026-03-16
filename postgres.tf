@@ -417,3 +417,16 @@ filter          = "metric.type=\"agent.googleapis.com/disk/percent_used\" AND re
     auto_close = "86400s" # 24 hours
   }
 }
+
+# ====================================
+# Automated Backups (via Cron on VM)
+# ====================================
+
+# Note: Automated backups are configured via cron on the PostgreSQL VM.
+# See: scripts/backup-postgres.sh
+#
+# To enable daily backups, SSH into the VM and add cron:
+#   sudo crontab -e
+#   Add: 0 2 * * * /home/your_user/scripts/backup-postgres.sh
+#
+# Or use Cloud Scheduler with a Cloud Run Job (see docs/guides/DISASTER_RECOVERY.md)

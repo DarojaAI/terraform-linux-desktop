@@ -403,6 +403,12 @@ variable "allow_postgres_from_cidrs" {
   default     = []
 }
 
+variable "enable_scheduled_backups" {
+  description = "Enable daily automatic PostgreSQL backups"
+  type        = bool
+  default     = false
+}
+
 variable "backup_retention_days" {
   description = "Number of days to retain PostgreSQL backups"
   type        = number
@@ -412,6 +418,11 @@ variable "backup_retention_days" {
     condition     = var.backup_retention_days >= 7 && var.backup_retention_days <= 365
     error_message = "Backup retention must be between 7 and 365 days."
   }
+
+variable "backup_schedule" {
+  description = "Cron schedule for PostgreSQL backups (default: daily at 2am UTC)"
+  type        = string
+  default     = "0 2 * * *"
 }
 
 variable "enable_postgres_monitoring" {
