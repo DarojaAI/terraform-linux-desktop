@@ -116,6 +116,15 @@ log_attacker_url = ""
 pattern_miner_url = ""
 # Example: "https://pattern-miner-xxxxx.run.app"
 
+# URL of action-agent service for executing code changes
+# Leave empty if not using action-agent
+action_agent_url = ""
+# Example: "https://action-agent-xxxxx.run.app"
+
+# Authentication token for action-agent service
+# Leave empty if not using action-agent
+action_agent_token = ""
+
 # A regex to match allowed origins for CORS.
 allowed_origin_regex = "https://.*-milan-patels-projects-187b35de\\.vercel\\.app"
 
