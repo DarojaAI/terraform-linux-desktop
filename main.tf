@@ -182,6 +182,32 @@ resource "google_secret_manager_secret_version" "pattern_miner_token" {
   secret_data = var.pattern_miner_token
 }
 
+resource "google_secret_manager_secret" "action_agent_token" {
+  count     = var.action_agent_token != "" ? 1 : 0
+  secret_id = "${var.secret_prefix}_ACTION_AGENT_TOKEN"
+
+  replication {
+    auto {}
+  }
+
+  labels = var.labels
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "action_agent_token" {
+  count       = var.action_agent_token != "" ? 1 : 0
+  secret      = google_secret_manager_secret.action_agent_token[0].id
+  secret_data = var.action_agent_token
+}
+
+resource "google_secret_manager_secret_iam_member" "action_agent_token_access" {
+  count     = var.action_agent_token != "" ? 1 : 0
+  secret_id = google_secret_manager_secret.action_agent_token[0].id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+}
+
 resource "google_secret_manager_secret" "orchestrator_token" {
   count     = var.orchestrator_token != "" ? 1 : 0
   secret_id = "${var.secret_prefix}_ORCHESTRATOR_TOKEN"
@@ -528,6 +554,14 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
         }
       }
 
+      dynamic "env" {
+        for_each = var.action_agent_url != "" ? [1] : []
+        content {
+          name  = "ACTION_AGENT_URL"
+          value = var.action_agent_url
+        }
+      }
+
       # Optional: External agent authentication tokens
       dynamic "env" {
         for_each = var.orchestrator_token != "" ? [1] : []
@@ -549,6 +583,19 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
           value_source {
             secret_key_ref {
               secret  = google_secret_manager_secret.pattern_miner_token[0].secret_id
+              version = "latest"
+            }
+          }
+        }
+      }
+
+      dynamic "env" {
+        for_each = var.action_agent_token != "" ? [1] : []
+        content {
+          name = "ACTION_AGENT_TOKEN"
+          value_source {
+            secret_key_ref {
+              secret  = google_secret_manager_secret.action_agent_token[0].secret_id
               version = "latest"
             }
           }

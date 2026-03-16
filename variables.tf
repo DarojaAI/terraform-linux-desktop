@@ -247,6 +247,19 @@ variable "pattern_miner_token" {
   default     = ""
 }
 
+variable "action_agent_url" {
+  description = "URL of action-agent service for executing code changes (optional)"
+  type        = string
+  default     = ""
+}
+
+variable "action_agent_token" {
+  description = "Authentication token for action-agent service"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "orchestrator_token" {
   description = "Authentication token for dependency-orchestrator service (optional - not currently required, auth not implemented yet)"
   type        = string
