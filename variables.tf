@@ -418,6 +418,7 @@ variable "backup_retention_days" {
     condition     = var.backup_retention_days >= 7 && var.backup_retention_days <= 365
     error_message = "Backup retention must be between 7 and 365 days."
   }
+}
 
 variable "backup_schedule" {
   description = "Cron schedule for PostgreSQL backups (default: daily at 2am UTC)"
