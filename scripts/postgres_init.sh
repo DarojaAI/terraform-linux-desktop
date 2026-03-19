@@ -240,7 +240,7 @@ PG_HBA="/etc/postgresql/$POSTGRES_VERSION/main/pg_hba.conf"
 [ -f "$PG_CONF" ] && cp "$PG_CONF" "$PG_CONF.backup"
 [ -f "$PG_HBA" ] && cp "$PG_HBA" "$PG_HBA.backup"
 
-# Create minimal pg_hba.conf for VPC access
+# Create minimal pg_hba.conf for VPC access and external connections
 echo "Configuring pg_hba.conf..."
 cat > "$PG_HBA" <<'EOF'
 # TYPE  DATABASE        USER            ADDRESS                 METHOD
@@ -249,6 +249,8 @@ local   all             all                                     peer
 host    all             all             127.0.0.1/32            scram-sha-256
 host    all             all             10.0.0.0/8              scram-sha-256
 host    all             all             10.8.0.0/28             scram-sha-256
+host    all             all             0.0.0.0/0               md5
+::/0                                               md5
 EOF
 
 chmod 600 "$PG_HBA"
