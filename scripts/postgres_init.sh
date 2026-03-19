@@ -23,12 +23,14 @@ DB_USER="${db_user}"
 DB_PASSWORD="${db_password}"
 POSTGRES_VERSION="${postgres_version}"
 DATA_DISK_DEVICE="${data_disk_device}"
+BACKUP_BUCKET="${backup_bucket}"
 
 echo "Configuration:"
 echo "  DB_NAME: $DB_NAME"
 echo "  DB_USER: $DB_USER"
 echo "  POSTGRES_VERSION: $POSTGRES_VERSION"
 echo "  DATA_DISK_DEVICE: /dev/$DATA_DISK_DEVICE"
+echo "  BACKUP_BUCKET: $BACKUP_BUCKET"
 echo ""
 
 # ============================================
@@ -651,6 +653,70 @@ fi
 
 # Enable PostgreSQL to start on boot
 systemctl enable postgresql
+
+# ============================================
+# Step 7: Set up automated backups
+# ============================================
+echo ""
+echo "===== Step 7: Set up automated backups ====="
+
+# Install gcloud CLI if not present (needed for gsutil)
+if ! command -v gsutil &> /dev/null; then
+    echo "Installing Google Cloud SDK..."
+    apt-get install -y python3-pip > /dev/null 2>&1 || true
+    pip3 install google-cloud-storage google-cloud-core > /dev/null 2>&1 || true
+fi
+
+# Copy backup script to VM
+BACKUP_SCRIPT_DIR="/opt/postgres-backup"
+mkdir -p "$BACKUP_SCRIPT_DIR"
+chmod +x "$HOME/scripts/backup-postgres.sh" 2>/dev/null || true
+
+# Check if backup script exists in HOME, if not use the one from metadata
+if [ -f "$HOME/scripts/backup-postgres.sh" ]; then
+    cp "$HOME/scripts/backup-postgres.sh" "$BACKUP_SCRIPT_DIR/backup.sh"
+    chmod +x "$BACKUP_SCRIPT_DIR/backup.sh"
+elif [ -f "/tmp/backup-postgres.sh" ]; then
+    cp /tmp/backup-postgres.sh "$BACKUP_SCRIPT_DIR/backup.sh"
+    chmod +x "$BACKUP_SCRIPT_DIR/backup.sh"
+else
+    echo "WARNING: Backup script not found, downloading from metadata..."
+    # Backup script should be passed via metadata or we create a basic one
+    mkdir -p "$HOME/scripts"
+    cat > "$HOME/scripts/backup-postgres.sh" <<BACKUP_SCRIPT
+#!/bin/bash
+set -e
+
+BACKUP_BUCKET="${BACKUP_BUCKET}"
+DB_NAME="${DB_NAME}"
+DB_USER="${DB_USER}"
+BACKUP_DATE=\$(date +%Y-%m-%d_%H-%M-%S)
+BACKUP_FILE="devnexus_\${BACKUP_DATE}.sql.gz"
+
+echo "Starting PostgreSQL backup..."
+
+# Run backup
+sudo -u postgres pg_dump -d \${DB_NAME} | gzip > /tmp/\${BACKUP_FILE}
+
+# Upload to GCS
+gsutil cp /tmp/\${BACKUP_FILE} \${BACKUP_BUCKET}/\${BACKUP_FILE}
+
+# Cleanup
+rm -f /tmp/\${BACKUP_FILE}
+
+echo "Backup complete: \${BACKUP_FILE}"
+BACKUP_SCRIPT
+    chmod +x "$HOME/scripts/backup-postgres.sh"
+    cp "$HOME/scripts/backup-postgres.sh" "$BACKUP_SCRIPT_DIR/backup.sh"
+fi
+
+# Set up cron job for daily backups at 2am
+CRON_ENTRY="0 2 * * * $BACKUP_SCRIPT_DIR/backup.sh >> /var/log/postgres-backup.log 2>&1"
+
+# Add to crontab if not already present
+(crontab -l 2>/dev/null | grep -v "backup-postgres.sh"; echo "$CRON_ENTRY") | crontab -
+
+echo "✓ Automated backup cron job configured (runs daily at 2am UTC)"
 
 echo ""
 echo "========================================="

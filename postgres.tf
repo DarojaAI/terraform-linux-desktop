@@ -422,11 +422,6 @@ filter          = "metric.type=\"agent.googleapis.com/disk/percent_used\" AND re
 # Automated Backups (via Cron on VM)
 # ====================================
 
-# Note: Automated backups are configured via cron on the PostgreSQL VM.
-# See: scripts/backup-postgres.sh
-#
-# To enable daily backups, SSH into the VM and add cron:
-#   sudo crontab -e
-#   Add: 0 2 * * * /home/your_user/scripts/backup-postgres.sh
-#
-# Or use Cloud Scheduler with a Cloud Run Job (see docs/guides/DISASTER_RECOVERY.md)
+# Automated daily backups are now configured in postgres_init.sh
+# Cron runs at 2am UTC daily, backup script located at /opt/postgres-backup/backup.sh
+# Logs written to /var/log/postgres-backup.log
