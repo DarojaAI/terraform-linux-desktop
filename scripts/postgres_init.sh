@@ -106,21 +106,28 @@ fi
 echo ""
 echo "===== Step 3: Install PostgreSQL $POSTGRES_VERSION ====="
 
-# Add PostgreSQL repository
-echo "Adding PostgreSQL repository..."
-sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' || echo "WARNING: Failed to add repo"
+# Try Ubuntu's default repos first (no external network needed)
+echo "Trying Ubuntu default repos..."
+apt-get update || true
+apt-get install -y postgresql-$POSTGRES_VERSION postgresql-contrib-$POSTGRES_VERSION 2>/dev/null && POSTGRES_FROM_UBUNTU=true || POSTGRES_FROM_UBUNTU=false
 
-wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - 2>/dev/null || echo "WARNING: Failed to add GPG key"
+# If not found, try PostgreSQL official repo
+if [ "$POSTGRES_FROM_UBUNTU" = "false" ]; then
+    echo "Ubuntu repos don't have PostgreSQL $POSTGRES_VERSION, trying PostgreSQL official repo..."
+    # Add PostgreSQL repository
+    sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' || echo "WARNING: Failed to add repo"
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - 2>/dev/null || echo "WARNING: Failed to add GPG key"
 
-# Update and install PostgreSQL
-echo "Updating package list..."
-apt-get update || echo "WARNING: apt-get update after repo add had issues"
+    # Update and install PostgreSQL
+    echo "Updating package list..."
+    apt-get update || echo "WARNING: apt-get update after repo add had issues"
 
-echo "Installing PostgreSQL $POSTGRES_VERSION..."
-apt-get install -y postgresql-$POSTGRES_VERSION postgresql-contrib-$POSTGRES_VERSION 2>&1 || {
-    echo "ERROR: PostgreSQL installation failed"
-    exit 1
-}
+    echo "Installing PostgreSQL $POSTGRES_VERSION..."
+    apt-get install -y postgresql-$POSTGRES_VERSION postgresql-contrib-$POSTGRES_VERSION 2>&1 || {
+        echo "ERROR: PostgreSQL installation failed from both repos"
+        exit 1
+    }
+fi
 
 # Verify PostgreSQL is installed
 if ! command -v psql &> /dev/null; then
