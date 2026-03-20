@@ -219,11 +219,18 @@ resource "google_compute_disk" "postgres_data" {
 # PostgreSQL VM Instance
 # ============================================
 
-# Create static IP for PostgreSQL
+# Create static internal IP for PostgreSQL
 resource "google_compute_address" "postgres_ip" {
   name         = "dev-nexus-postgres-ip"
   address_type = "INTERNAL"
   subnetwork   = google_compute_subnetwork.postgres_subnet.id
+  region       = var.region
+}
+
+# Create external IP for PostgreSQL (for internet access and pgAdmin)
+resource "google_compute_address" "postgres_external_ip" {
+  name         = "dev-nexus-postgres-external-ip"
+  address_type = "EXTERNAL"
   region       = var.region
 }
 
@@ -259,7 +266,7 @@ resource "google_compute_instance" "postgres" {
     # Always assign external IP for internet access and pgAdmin
     # This is required because custom VPC networks don't have default route
     access_config {
-      nat_ip        = ""  # Ephemeral IP (auto-assigned)
+      nat_ip        = google_compute_address.postgres_external_ip.address
       network_tier  = "STANDARD"
     }
   }
