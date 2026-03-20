@@ -242,7 +242,8 @@ PG_HBA="/etc/postgresql/$POSTGRES_VERSION/main/pg_hba.conf"
 [ -f "$PG_CONF" ] && cp "$PG_CONF" "$PG_CONF.backup"
 [ -f "$PG_HBA" ] && cp "$PG_HBA" "$PG_HBA.backup"
 
-# Create minimal pg_hba.conf for VPC access and external connections
+# Create pg_hba.conf for VPC access and external connections
+# NOTE: IPv6 address MUST be properly formatted with correct column spacing
 echo "Configuring pg_hba.conf..."
 cat > "$PG_HBA" <<'EOF'
 # TYPE  DATABASE        USER            ADDRESS                 METHOD
@@ -252,7 +253,7 @@ host    all             all             127.0.0.1/32            scram-sha-256
 host    all             all             10.0.0.0/8              scram-sha-256
 host    all             all             10.8.0.0/28             scram-sha-256
 host    all             all             0.0.0.0/0               md5
-::/0                                               md5
+host    all             all             ::/0                    md5
 EOF
 
 chmod 600 "$PG_HBA"
@@ -260,6 +261,10 @@ chown postgres:postgres "$PG_HBA"
 
 # Configure postgresql.conf for remote connections and performance
 echo "Configuring postgresql.conf..."
+# CRITICAL: Use >> to append, but we need to ensure listen_addresses is NOT duplicated
+# First, check if it's already set and remove any duplicates
+sed -i "/^listen_addresses/d" "$PG_CONF"
+
 cat >> "$PG_CONF" <<'EOF'
 
 # ====================================
@@ -321,23 +326,58 @@ EOF
 echo ""
 echo "===== Step 6: Create Database and User ====="
 
-# Start PostgreSQL
-echo "Starting PostgreSQL..."
-systemctl start postgresql || {
-    echo "ERROR: Failed to start PostgreSQL"
-    echo "systemctl status:"
-    systemctl status postgresql || true
+# CRITICAL: Verify disk is mounted before starting PostgreSQL
+# The disk might not be mounted immediately after boot even with fstab entry
+echo "Verifying disk mount status..."
+if ! mountpoint -q "$MOUNT_POINT"; then
+    echo "WARNING: Disk not mounted at $MOUNT_POINT, attempting to mount..."
+    mount "$MOUNT_POINT" 2>/dev/null || {
+        echo "ERROR: Failed to mount disk at $MOUNT_POINT"
+        exit 1
+    }
+    echo "Disk mounted successfully"
+else
+    echo "Disk already mounted at $MOUNT_POINT"
+fi
+
+# Verify data directory exists and has correct permissions
+if [ ! -d "/var/lib/postgresql/$POSTGRES_VERSION/main" ]; then
+    echo "ERROR: PostgreSQL data directory not found at /var/lib/postgresql/$POSTGRES_VERSION/main"
     exit 1
-}
+fi
+
+# Stop any existing PostgreSQL processes
+echo "Stopping any existing PostgreSQL processes..."
+pg_ctlcluster $POSTGRES_VERSION main stop 2>/dev/null || true
+sleep 2
+
+# Start PostgreSQL using pg_ctl directly (more reliable than systemctl during startup)
+# Note: Values like DB_PASSWORD come from Terraform variables via metadata
+echo "Starting PostgreSQL..."
+PG_DATA_DIR="/var/lib/postgresql/$POSTGRES_VERSION/main"
+PG_LOG_DIR="$PG_DATA_DIR/log"
+
+# Ensure log directory exists
+mkdir -p "$PG_LOG_DIR"
+chown postgres:postgres "$PG_LOG_DIR"
+
+# Start PostgreSQL as postgres user
+sudo -u postgres /usr/lib/postgresql/$POSTGRES_VERSION/bin/pg_ctl -D "$PG_DATA_DIR" -l "$PG_LOG_DIR/startup.log" start -o "-c config_file=$PG_CONF"
 
 # Wait for PostgreSQL to be ready
 echo "Waiting for PostgreSQL to be ready..."
-for i in {1..30}; do
+MAX_PG_WAIT=60
+for i in $(seq 1 $MAX_PG_WAIT); do
     if sudo -u postgres psql -c "SELECT 1;" >/dev/null 2>&1; then
-        echo "PostgreSQL is ready"
+        echo "PostgreSQL is ready (attempt $i/$MAX_PG_WAIT)"
         break
     fi
-    echo "Attempt $i/30: waiting for PostgreSQL..."
+    if [ $i -eq $MAX_PG_WAIT ]; then
+        echo "ERROR: PostgreSQL did not become ready after $MAX_PG_WAIT attempts"
+        echo "Check logs at: $PG_LOG_DIR/startup.log"
+        exit 1
+    fi
+    echo "Attempt $i/$MAX_PG_WAIT: waiting for PostgreSQL..."
     sleep 2
 done
 
@@ -652,7 +692,27 @@ else
 fi
 
 # Enable PostgreSQL to start on boot
+# Using systemctl for boot is fine - the key is that pg_ctl starts successfully during setup
 systemctl enable postgresql
+
+# CRITICAL: Ensure listen_addresses is set via ALTER SYSTEM to persist across restarts
+# This is more reliable than relying on postgresql.conf alone
+echo "Setting listen_addresses to '*' via ALTER SYSTEM..."
+sudo -u postgres psql -c "ALTER SYSTEM SET listen_addresses = '*';" || echo "WARNING: ALTER SYSTEM failed"
+
+# Create a systemd override to ensure disk is mounted before PostgreSQL starts
+# This ensures the persistent data disk is ready before PostgreSQL tries to use it
+echo "Creating systemd service override for reliable startup..."
+mkdir -p /etc/systemd/system/postgresql.service.d
+cat > /etc/systemd/system/postgresql.service.d/override.conf <<'OVERRIDE'
+[Unit]
+After=local-fs.target
+RequiresMountsFor=/mnt/postgres-data
+OVERRIDE
+
+# Reload systemd to pick up the override
+systemctl daemon-reload
+echo "Systemd override created"
 
 # ============================================
 # Step 7: Set up automated backups
