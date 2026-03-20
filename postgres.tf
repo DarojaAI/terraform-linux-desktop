@@ -231,6 +231,7 @@ resource "google_compute_address" "postgres_ip" {
 resource "google_compute_address" "postgres_external_ip" {
   name         = "dev-nexus-postgres-external-ip"
   address_type = "EXTERNAL"
+  network_tier = "STANDARD"
   region       = var.region
 }
 
