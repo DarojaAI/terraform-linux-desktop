@@ -400,10 +400,11 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       }
 
       # PostgreSQL connection settings
-      env {
-        name  = "DATABASE_URL"
-        value = "postgresql://${var.postgres_db_user}@${google_compute_address.postgres_ip.address}:5432/${var.postgres_db_name}"
-      }
+      # NOTE: DATABASE_URL is NOT set here because it would expose the password in plain text
+      # The app uses individual POSTGRES_* environment variables (POSTGRES_HOST, POSTGRES_USER, etc.)
+      # which are properly set below. For audit.py which uses DATABASE_URL, it should fall back to
+      # constructing the URL from individual vars or using the default. The database.py already
+      # reads individual vars and constructs the connection properly.
 
       env {
         name  = "POSTGRES_HOST"
