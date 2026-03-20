@@ -77,6 +77,23 @@ resource "google_compute_firewall" "allow_ssh" {
   target_tags   = ["postgres-server"]
 }
 
+# Allow all outbound internet access for package downloads
+resource "google_compute_firewall" "allow_egress_all" {
+  name    = "dev-nexus-allow-egress-all"
+  network = google_compute_network.postgres_network.name
+
+  direction = "EGRESS"
+
+  allow {
+    protocol = "all"
+  }
+
+  # Allow to any destination (0.0.0.0/0)
+  destination_ranges = ["0.0.0.0/0"]
+
+  target_tags = ["postgres-server"]
+}
+
 # Cloud Router for NAT
 resource "google_compute_router" "postgres_router" {
   name    = "dev-nexus-router"
