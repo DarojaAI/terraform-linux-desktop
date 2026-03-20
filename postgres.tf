@@ -103,6 +103,19 @@ resource "google_compute_router" "postgres_router" {
   depends_on = [google_compute_network.postgres_network]
 }
 
+# Default route to internet via default internet gateway
+# This is needed because the custom VPC network doesn't have a default route
+# VM has public IP so it can route directly to internet gateway
+resource "google_compute_route" "default_to_internet" {
+  name        = "dev-nexus-default-route"
+  network     = google_compute_network.postgres_network.name
+  dest_range  = "0.0.0.0/0"
+  priority    = 1000
+  next_hop_gateway = "global/internet-gateway"
+
+  depends_on = [google_compute_network.postgres_network]
+}
+
 # Cloud NAT for outbound internet access
 # Required for VM to download packages during startup
 resource "google_compute_router_nat" "postgres_nat" {
