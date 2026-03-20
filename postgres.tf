@@ -170,11 +170,6 @@ resource "google_compute_disk" "postgres_data" {
     database  = "postgresql"
     data      = "persistent"
   })
-
-  # Ensure disk can be destroyed (allow destroy even with snapshots)
-  lifecycle {
-    # Allow destruction - snapshot policies will be removed first
-  }
 }
 
 # ============================================
@@ -395,18 +390,11 @@ resource "google_compute_resource_policy" "postgres_snapshot_policy" {
 }
 
 # Attach snapshot policy to PostgreSQL data disk
-# NOTE: The attachment must be destroyed BEFORE the disk can be deleted
-# This explicit depends_on ensures correct destroy order
+# The attachment will be automatically removed before the disk during destroy
 resource "google_compute_disk_resource_policy_attachment" "postgres_snapshots" {
   name = google_compute_resource_policy.postgres_snapshot_policy.name
   disk = google_compute_disk.postgres_data.name
   zone = google_compute_instance.postgres.zone
-
-  # Ensure this attachment is always destroyed before the disk
-  # (explicit ordering for terraform destroy to work correctly)
-  lifecycle {
-    destroy = true
-  }
 }
 
 # Alert policy for disk usage
