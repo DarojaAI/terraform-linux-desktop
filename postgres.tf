@@ -206,7 +206,7 @@ resource "google_storage_bucket" "postgres_backups" {
 resource "google_compute_disk" "postgres_data" {
   name  = "dev-nexus-postgres-data"
   type  = "pd-standard"
-  zone  = "${var.region}-a"
+  zone  = "${var.region}-b"
   size  = var.postgres_disk_size_gb
   labels = merge(var.labels, {
     component = "database"
@@ -231,7 +231,7 @@ resource "google_compute_address" "postgres_ip" {
 resource "google_compute_instance" "postgres" {
   name         = "dev-nexus-postgres"
   machine_type = var.postgres_machine_type
-  zone         = "${var.region}-a"
+  zone         = "${var.region}-b"
 
   # Enable IP forwarding so VM can route to internet via public IP
   can_ip_forward = true
