@@ -171,7 +171,7 @@ output "postgres_ssh_command" {
 
 output "cloud_build_trigger_id" {
   description = "ID of the Cloud Build trigger for GitHub integration"
-  value      = google_cloudbuild_trigger.dev_nexus_github.trigger_id
+  value      = var.create_github_trigger ? google_cloudbuild_trigger.dev_nexus_github[0].trigger_id : null
 }
 
 output "cloud_build_trigger_webhook" {

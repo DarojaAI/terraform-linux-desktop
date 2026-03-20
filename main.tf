@@ -643,6 +643,7 @@ resource "google_cloud_run_service_iam_member" "orchestrator_invoker" {
 # NOTE: Requires GitHub App authentication setup in GCP Cloud Build console first
 # See: https://cloud.google.com/build/docs/automating-builds/github/connect-repo-github
 resource "google_cloudbuild_trigger" "dev_nexus_github" {
+  count       = var.create_github_trigger ? 1 : 0
   name        = "pattern-discovery-agent-webhook"
   description = "Automatically build and deploy dev-nexus on GitHub push to main"
   filename    = "cloudbuild.yaml"

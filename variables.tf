@@ -218,6 +218,12 @@ variable "create_external_service_accounts" {
   default     = false
 }
 
+variable "create_github_trigger" {
+  description = "Create GitHub webhook trigger for Cloud Build (requires GitHub App connection in Cloud Build console)"
+  type        = bool
+  default     = false
+}
+
 # ====================================
 # Integration Configuration
 # ====================================
