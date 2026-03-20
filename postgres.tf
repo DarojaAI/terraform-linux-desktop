@@ -261,7 +261,6 @@ resource "google_compute_instance" "postgres" {
     access_config {
       nat_ip        = ""  # Ephemeral IP (auto-assigned)
       network_tier  = "STANDARD"
-      }
     }
   }
 
