@@ -409,6 +409,12 @@ variable "allow_postgres_from_cidrs" {
   default     = []
 }
 
+variable "postgres_external_ip" {
+  description = "Assign an external (public) IP to PostgreSQL VM for direct access from local machine (needed for pgAdmin). Requires allow_postgres_from_cidrs to include your IP."
+  type        = bool
+  default     = false
+}
+
 variable "enable_scheduled_backups" {
   description = "Enable daily automatic PostgreSQL backups"
   type        = bool

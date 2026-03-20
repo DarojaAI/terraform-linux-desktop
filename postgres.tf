@@ -216,10 +216,14 @@ resource "google_compute_instance" "postgres" {
     subnetwork = google_compute_subnetwork.postgres_subnet.id
     network_ip = google_compute_address.postgres_ip.address
 
-    # Ephemeral external IPv4 address with Standard network service tier
-    access_config {
-      nat_ip        = ""  # Empty string = ephemeral IP (auto-assigned)
-      network_tier  = "STANDARD"
+    # External IP for pgAdmin access from local machine
+    # Set var.postgres_external_ip = true and configure allow_postgres_from_cidrs
+    dynamic "access_config" {
+      for_each = var.postgres_external_ip ? [1] : []
+      content {
+        nat_ip        = ""  # Ephemeral IP (auto-assigned)
+        network_tier  = "STANDARD"
+      }
     }
   }
 
