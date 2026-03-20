@@ -224,7 +224,9 @@ resource "google_compute_instance" "postgres" {
     db_user           = var.postgres_db_user
     db_password       = var.postgres_db_password
     backup_bucket     = google_storage_bucket.postgres_backups.name
-    BACKUP_BUCKET     = google_storage_bucket.postgres_backups.name
+    BACKUP_BUCKET    = google_storage_bucket.postgres_backups.name
+    DB_NAME           = var.postgres_db_name
+    DB_USER           = var.postgres_db_user
     postgres_version  = var.postgres_version
     enable_monitoring = var.enable_postgres_monitoring
     data_disk_device  = "sdb"
