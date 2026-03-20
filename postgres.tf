@@ -217,6 +217,9 @@ resource "google_compute_instance" "postgres" {
   machine_type = var.postgres_machine_type
   zone         = "${var.region}-a"
 
+  # Enable IP forwarding so VM can route to internet via public IP
+  can_ip_forward = true
+
   tags = ["postgres-server"]
 
   boot_disk {
