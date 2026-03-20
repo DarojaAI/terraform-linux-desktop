@@ -13,6 +13,12 @@ environment   = "prod"
 secret_prefix = "dev-nexus-prod"
 
 # ====================================
+# Frontend Configuration
+# ====================================
+
+frontend_url = "https://dev-nexus-frontend-noig7bsv5-milan-patels-projects-187b35de.vercel.app"
+
+# ====================================
 # GCP Configuration
 # ====================================
 
