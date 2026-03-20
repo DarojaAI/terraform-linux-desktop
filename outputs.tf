@@ -169,6 +169,16 @@ output "postgres_ssh_command" {
 # Summary
 # ====================================
 
+output "cloud_build_trigger_id" {
+  description = "ID of the Cloud Build trigger for GitHub integration"
+  value      = google_cloudbuild_trigger.dev_nexus_github.trigger_id
+}
+
+output "cloud_build_trigger_webhook" {
+  description = "URL to view Cloud Build trigger history"
+  value       = "https://console.cloud.google.com/cloud-build/triggers?project=${var.project_id}"
+}
+
 output "deployment_summary" {
   description = "Summary of the deployment"
   value = {
@@ -183,5 +193,6 @@ output "deployment_summary" {
     database          = "PostgreSQL ${var.postgres_version} with pgvector"
     database_location = "${google_compute_instance.postgres.zone} (${google_compute_address.postgres_ip.address})"
     backup_bucket     = google_storage_bucket.postgres_backups.name
+    cloud_build_url   = "https://console.cloud.google.com/cloud-build/triggers?project=${var.project_id}"
   }
 }

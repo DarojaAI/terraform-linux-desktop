@@ -280,30 +280,10 @@ resource "google_secret_manager_secret_iam_member" "orchestrator_token_access" {
 }
 
 # Build and push Docker image to Artifact Registry
-resource "null_resource" "docker_build" {
-  triggers = {
-    # Rebuild if source code changes
-    src_hash = sha256(join("", [
-      for f in fileset(path.module, "../{a2a,core,schemas}/**/*.py") : filesha256("${path.module}/${f}")
-    ]))
-    dockerfile_hash = filesha256("${path.module}/../Dockerfile")
-  }
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      cd ${path.module}/..
-      gcloud builds submit \
-        --config=cloudbuild.yaml \
-        --substitutions="_REGION=${var.region},_ENVIRONMENT=${var.environment},_KNOWLEDGE_BASE_REPO=${var.knowledge_base_repo}" \
-        --project=${var.project_id}
-    EOT
-  }
-
-  depends_on = [
-    google_project_service.cloudbuild,
-    google_project_service.run
-  ]
-}
+# Note: Removed null_resource.docker_build as it conflicts with Terraform's
+# google_cloud_run_v2_service deployment. Both were trying to deploy
+# to the same Cloud Run service. Use separate docker build + push workflow
+# if manual image rebuild is needed, or let Terraform handle everything.
 
 # Deploy Cloud Run service
 resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
@@ -661,26 +641,33 @@ resource "google_cloud_run_service_iam_member" "orchestrator_invoker" {
 
 # Cloud Build GitHub Webhook Trigger
 # Automatically triggers Docker build and Cloud Run deployment on git push to main
-# DISABLED - requires GitHub App authentication setup in GCP console first
-# To enable: Set up GitHub App connection in Cloud Build console, then uncomment
-# resource "google_cloudbuild_trigger" "dev_nexus_github" {
-#   name            = "pattern-discovery-agent-webhook"
-#   description     = "Automatically build and deploy dev-nexus on GitHub push to main"
-#   filename        = "cloudbuild.yaml"
-#   disabled        = false
-#
-#   github {
-#     owner = "patelmm79"
-#     name  = "dev-nexus"
-#     push {
-#       branch = "^main$"
-#     }
-#   }
-#
-#   depends_on = [
-#     google_project_service.cloudbuild
-#   ]
-# }
+# NOTE: Requires GitHub App authentication setup in GCP Cloud Build console first
+# See: https://cloud.google.com/build/docs/automating-builds/github/connect-repo-github
+resource "google_cloudbuild_trigger" "dev_nexus_github" {
+  name        = "pattern-discovery-agent-webhook"
+  description = "Automatically build and deploy dev-nexus on GitHub push to main"
+  filename    = "cloudbuild.yaml"
+  disabled    = false
+
+  github {
+    owner = "patelmm79"
+    name  = "dev-nexus"
+    push {
+      branch = "^main$"
+    }
+  }
+
+  substitutions = {
+    _REGION               = var.region
+    _ENVIRONMENT          = var.environment
+    _KNOWLEDGE_BASE_REPO  = var.knowledge_base_repo
+    _FRONTEND_URL         = var.frontend_url
+  }
+
+  depends_on = [
+    google_project_service.cloudbuild
+  ]
+}
 
 # Data sources
 data "google_project" "project" {
