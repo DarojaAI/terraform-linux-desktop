@@ -295,7 +295,6 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
   depends_on = [
     google_vpc_access_connector.postgres_connector,
     google_compute_instance.postgres,
-    null_resource.docker_build,
     google_secret_manager_secret_iam_member.github_token_access,
     google_secret_manager_secret_iam_member.anthropic_key_access,
     google_secret_manager_secret_iam_member.github_client_id_access,
