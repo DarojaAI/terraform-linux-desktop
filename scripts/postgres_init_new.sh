@@ -239,6 +239,15 @@ fi
 echo ""
 echo "===== Step 5: Configure PostgreSQL ====="
 
+# Detect actual PostgreSQL version installed (might differ from requested version)
+ACTUAL_VERSION=$(pg_lsclusters -h | awk '{print $1}' | head -1)
+if [ -n "$ACTUAL_VERSION" ]; then
+    echo "Detected actual PostgreSQL version: $ACTUAL_VERSION"
+    POSTGRES_VERSION="$ACTUAL_VERSION"
+else
+    echo "Using configured PostgreSQL version: $POSTGRES_VERSION"
+fi
+
 PG_CONF="/etc/postgresql/$POSTGRES_VERSION/main/postgresql.conf"
 PG_HBA="/etc/postgresql/$POSTGRES_VERSION/main/pg_hba.conf"
 
