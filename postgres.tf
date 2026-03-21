@@ -103,6 +103,17 @@ resource "google_compute_router" "postgres_router" {
   depends_on = [google_compute_network.postgres_network]
 }
 
+# Default route to the internet
+resource "google_compute_route" "default_internet_route" {
+  name             = "dev-nexus-default-internet-route"
+  dest_range       = "0.0.0.0/0"
+  network          = google_compute_network.postgres_network.name
+  next_hop_gateway = "default-internet-gateway"
+  priority         = 1000
+
+  depends_on = [google_compute_network.postgres_network]
+}
+
 # Note: Removed default route - VMs with public IPs in custom VPCs
 # should be able to reach the internet directly. If needed, configure
 # Cloud NAT for instances without public IPs.
@@ -260,7 +271,7 @@ resource "google_compute_instance" "postgres" {
     enable-oslogin = "TRUE"
   }
 
-  metadata_startup_script = templatefile("${path.module}/scripts/postgres_init.sh", {
+  metadata_startup_script = templatefile("${path.module}/scripts/postgres_init_new.sh", {
     db_name           = var.postgres_db_name
     db_user           = var.postgres_db_user
     db_password       = var.postgres_db_password
