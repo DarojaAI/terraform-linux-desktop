@@ -186,8 +186,10 @@ fi
 
 # Verify pgvector is available
 PGVECTOR_CHECK=$(sudo -u postgres psql -d postgres -c "SELECT extversion FROM pg_extension WHERE extname = 'vector';" 2>&1)
-if echo "$PGVECTOR_CHECK" | grep -q '^[0-9]'; then
-    echo "✓ pgvector extension verified: $PGVECTOR_CHECK"
+# Check if output contains a version number (0.x.x format) - ignore header lines
+if echo "$PGVECTOR_CHECK" | grep -qE '[0-9]+\.[0-9]+'; then
+    PGVECTOR_VERSION=$(echo "$PGVECTOR_CHECK" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1)
+    echo "✓ pgvector extension verified: v$PGVECTOR_VERSION"
 else
     echo "ERROR: pgvector extension not found or not available: $PGVECTOR_CHECK"
     exit 1
