@@ -265,9 +265,11 @@ chown postgres:postgres "$PG_HBA"
 
 # Configure postgresql.conf for remote connections and performance
 echo "Configuring postgresql.conf..."
-# CRITICAL: Use >> to append, but we need to ensure listen_addresses is NOT duplicated
-# First, check if it's already set and remove any duplicates
+# CRITICAL: Remove ALL listen_addresses lines (commented or not) before adding our own
+# The pattern matches: listen_addresses with optional leading #
 sed -i "/^#*listen_addresses/d" "$PG_CONF"
+# Also remove any uncommented listen_addresses ( Ubuntu default might be 'localhost')
+sed -i "/^listen_addresses/d" "$PG_CONF"
 
 cat >> "$PG_CONF" <<'EOF'
 
