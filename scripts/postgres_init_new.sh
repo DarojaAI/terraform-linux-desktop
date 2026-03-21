@@ -86,20 +86,24 @@ else
 
     # Check if disk is already formatted
     if blkid "$DISK_PATH" > /dev/null 2>&1; then
-        echo "Disk already formatted, mounting..."
+        echo "Disk already formatted, getting UUID..."
+        DISK_UUID=$(blkid -s UUID -o value "$DISK_PATH")
     else
         echo "Formatting disk as ext4..."
         mkfs.ext4 -F "$DISK_PATH"
+        DISK_UUID=$(blkid -s UUID -o value "$DISK_PATH")
     fi
 
-    # Mount the disk
-    mount "$MOUNT_POINT"
+    echo "Disk UUID: $DISK_UUID"
 
-    # Add to fstab for persistent mounting across reboots
-    if ! grep -q "$DISK_PATH" /etc/fstab; then
-        echo "Adding disk to fstab for persistent mounting..."
-        echo "$DISK_PATH $MOUNT_POINT ext4 defaults,nofail 0 2" >> /etc/fstab
+    # Add to fstab using UUID (more reliable than device name)
+    if ! grep -q "$DISK_UUID" /etc/fstab; then
+        echo "Adding disk to fstab for persistent mounting (using UUID)..."
+        echo "UUID=$DISK_UUID $MOUNT_POINT ext4 defaults,nofail 0 2" >> /etc/fstab
     fi
+
+    # Mount the disk (using UUID in fstab, but mount by path first)
+    mount "$MOUNT_POINT" || mount "$DISK_PATH" "$MOUNT_POINT"
 
     # Verify mount
     if mountpoint -q "$MOUNT_POINT"; then
@@ -107,7 +111,14 @@ else
         df -h "$MOUNT_POINT"
     else
         echo "ERROR: Disk mount verification failed"
-        exit 1
+        # Try one more time with explicit options
+        mount -o defaults,nofail "$DISK_PATH" "$MOUNT_POINT" || true
+        if mountpoint -q "$MOUNT_POINT"; then
+            echo "Disk successfully mounted on retry"
+            df -h "$MOUNT_POINT"
+        else
+            echo "ERROR: Disk mount failed after retry - continuing anyway, PostgreSQL may use boot disk"
+        fi
     fi
 fi
 
@@ -456,11 +467,33 @@ sudo -u postgres psql -c "ALTER SYSTEM SET listen_addresses = '*';"
 # This ensures the persistent data disk is ready before PostgreSQL tries to use it
 echo "Creating systemd service override for reliable startup..."
 mkdir -p /etc/systemd/system/postgresql.service.d
-cat > /etc/systemd/system/postgresql.service.d/override.conf <<'OVERRIDE'
+
+# Use device path directly since UUID might not be available in early boot
+cat > /etc/systemd/system/postgresql.service.d/override.conf <<OVERRIDE
 [Unit]
-After=local-fs.target
+After=local-fs.target mnt-postgres-data.mount
 RequiresMountsFor=/mnt/postgres-data
+Before=postgresql.service
 OVERRIDE
+
+# Create mount unit for the data disk if it doesn't exist
+if [ -n "$DISK_PATH" ]; then
+    MOUNT_UNIT=$(systemd-escape -p /mnt/postgres-data.mount)
+    cat > /etc/systemd/system/$MOUNT_UNIT <<MOUNTUNIT
+[Unit]
+DefaultDependencies=no
+After=systemd-remount-fs.service
+Before=local-fs.target
+[Mount]
+What=$DISK_PATH
+Where=/mnt/postgres-data
+Type=ext4
+Options=defaults,nofail
+[Install]
+WantedBy=local-fs.target
+MOUNTUNIT
+    echo "Mount unit created: $MOUNT_UNIT"
+fi
 
 # Reload systemd to pick up the override
 systemctl daemon-reload
