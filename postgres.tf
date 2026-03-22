@@ -355,15 +355,61 @@ resource "google_secret_manager_secret_version" "postgres_password" {
   secret_data = var.postgres_db_password
 }
 
+resource "google_secret_manager_secret" "postgres_user" {
+  secret_id = "${var.secret_prefix}_POSTGRES_USER"
+
+  replication {
+    auto {}
+  }
+
+  labels = var.labels
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "postgres_user" {
+  secret      = google_secret_manager_secret.postgres_user.id
+  secret_data = var.postgres_db_user
+}
+
+resource "google_secret_manager_secret" "postgres_db" {
+  secret_id = "${var.secret_prefix}_POSTGRES_DB"
+
+  replication {
+    auto {}
+  }
+
+  labels = var.labels
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "postgres_db" {
+  secret      = google_secret_manager_secret.postgres_db.id
+  secret_data = var.postgres_db_name
+}
+
 resource "google_secret_manager_secret_iam_member" "postgres_password_access" {
   secret_id = google_secret_manager_secret.postgres_password.id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${google_service_account.postgres_vm.email}"
 }
 
-# Grant Cloud Run access to read postgres password
+# Grant Cloud Run access to read postgres credentials
 resource "google_secret_manager_secret_iam_member" "cloudrun_postgres_password_access" {
   secret_id = google_secret_manager_secret.postgres_password.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "cloudrun_postgres_user_access" {
+  secret_id = google_secret_manager_secret.postgres_user.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "cloudrun_postgres_db_access" {
+  secret_id = google_secret_manager_secret.postgres_db.id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }

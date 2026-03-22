@@ -299,7 +299,10 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
     google_secret_manager_secret_iam_member.anthropic_key_access,
     google_secret_manager_secret_iam_member.github_client_id_access,
     google_secret_manager_secret_iam_member.github_client_secret_access,
-    google_secret_manager_secret_iam_member.jwt_secret_access
+    google_secret_manager_secret_iam_member.jwt_secret_access,
+    google_secret_manager_secret_iam_member.cloudrun_postgres_password_access,
+    google_secret_manager_secret_iam_member.cloudrun_postgres_user_access,
+    google_secret_manager_secret_iam_member.cloudrun_postgres_db_access
   ]
 
   template {
@@ -396,13 +399,23 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       }
 
       env {
-        name  = "POSTGRES_DB"
-        value = var.postgres_db_name
+        name = "POSTGRES_DB"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.postgres_db.secret_id
+            version = "latest"
+          }
+        }
       }
 
       env {
-        name  = "POSTGRES_USER"
-        value = var.postgres_db_user
+        name = "POSTGRES_USER"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.postgres_user.secret_id
+            version = "latest"
+          }
+        }
       }
 
       env {
