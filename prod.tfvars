@@ -121,9 +121,6 @@ labels = {
 # PostgreSQL - Production Settings
 # ====================================
 
-postgres_db_password      = "prod_db_password_from_secret_manager"
-postgres_db_name          = "devnexus"
-postgres_db_user          = "devnexus"
 postgres_version          = "15"
 postgres_machine_type     = "e2-small"  # More resources for production
 postgres_disk_size_gb     = 100         # More capacity for production data

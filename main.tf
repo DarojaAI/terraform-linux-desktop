@@ -302,7 +302,8 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
     google_secret_manager_secret_iam_member.jwt_secret_access,
     google_secret_manager_secret_iam_member.cloudrun_postgres_password_access,
     google_secret_manager_secret_iam_member.cloudrun_postgres_user_access,
-    google_secret_manager_secret_iam_member.cloudrun_postgres_db_access
+    google_secret_manager_secret_iam_member.cloudrun_postgres_db_access,
+    google_secret_manager_secret_iam_member.cloudrun_postgres_host_access
   ]
 
   template {
@@ -389,8 +390,13 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       # reads individual vars and constructs the connection properly.
 
       env {
-        name  = "POSTGRES_HOST"
-        value = google_compute_address.postgres_ip.address
+        name = "POSTGRES_HOST"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.postgres_host.secret_id
+            version = "latest"
+          }
+        }
       }
 
       env {

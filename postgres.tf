@@ -389,6 +389,26 @@ resource "google_secret_manager_secret_version" "postgres_db" {
   secret_data = var.postgres_db_name
 }
 
+# Store PostgreSQL host IP in Secret Manager
+# This ensures Cloud Run always gets the correct internal IP,
+# even if the PostgreSQL VM is recreated with a different IP
+resource "google_secret_manager_secret" "postgres_host" {
+  secret_id = "${var.secret_prefix}_POSTGRES_HOST"
+
+  replication {
+    auto {}
+  }
+
+  labels = var.labels
+
+  depends_on = [google_project_service.secretmanager]
+}
+
+resource "google_secret_manager_secret_version" "postgres_host" {
+  secret      = google_secret_manager_secret.postgres_host.id
+  secret_data = google_compute_address.postgres_ip.address
+}
+
 resource "google_secret_manager_secret_iam_member" "postgres_password_access" {
   secret_id = google_secret_manager_secret.postgres_password.id
   role      = "roles/secretmanager.secretAccessor"
@@ -410,6 +430,12 @@ resource "google_secret_manager_secret_iam_member" "cloudrun_postgres_user_acces
 
 resource "google_secret_manager_secret_iam_member" "cloudrun_postgres_db_access" {
   secret_id = google_secret_manager_secret.postgres_db.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${data.google_compute_default_service_account.default.email}"
+}
+
+resource "google_secret_manager_secret_iam_member" "cloudrun_postgres_host_access" {
+  secret_id = google_secret_manager_secret.postgres_host.id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${data.google_compute_default_service_account.default.email}"
 }
