@@ -82,7 +82,6 @@ resource "google_iam_workload_identity_pool_provider" "github" {
 # =============================================================================
 
 resource "google_service_account_iam_member" "wif_impersonate" {
-  project         = var.project_id
   service_account_id = google_service_account.github_actions_deploy.name
   role           = "roles/iam.workloadIdentityUser"
   member         = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repo}"
