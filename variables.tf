@@ -1,6 +1,28 @@
 # Terraform Variables for dev-nexus
 
 # ====================================
+# GitHub Actions Workload Identity Federation
+# ====================================
+
+variable "github_actions_enabled" {
+  description = "Enable GitHub Actions Workload Identity Federation for CI/CD deployment"
+  type        = bool
+  default     = true
+}
+
+variable "github_repo" {
+  description = "GitHub repository in 'owner/repo' format (e.g., 'patelmm79/dev-nexus')"
+  type        = string
+  default     = "patelmm79/dev-nexus"
+}
+
+variable "github_owner" {
+  description = "GitHub repository owner (e.g., 'patelmm79')"
+  type        = string
+  default     = "patelmm79"
+}
+
+# ====================================
 # Environment Configuration (REQUIRED)
 # ====================================
 

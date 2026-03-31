@@ -26,6 +26,12 @@ project_id = "globalbiting-dev"  # Change to production GCP project if separate
 region     = "us-central1"
 
 # ====================================
+# GitHub Actions WIF
+# ====================================
+
+github_actions_enabled = true
+
+# ====================================
 # Secrets (ALWAYS use Secret Manager in production!)
 # ====================================
 

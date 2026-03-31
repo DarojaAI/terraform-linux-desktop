@@ -19,6 +19,12 @@ project_id = "globalbiting-dev"
 region     = "us-central1"
 
 # ====================================
+# GitHub Actions WIF
+# ====================================
+
+github_actions_enabled = true
+
+# ====================================
 # Secrets (Use Secret Manager in production!)
 # ====================================
 
