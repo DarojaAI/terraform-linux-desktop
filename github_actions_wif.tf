@@ -87,6 +87,13 @@ resource "google_service_account_iam_member" "wif_impersonate" {
   member         = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repo}"
 }
 
+# Allow WIF pool to mint access tokens for the deploy SA (needed for token_format: access_token)
+resource "google_service_account_iam_member" "wif_token_creator" {
+  service_account_id = google_service_account.github_actions_deploy.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repo}"
+}
+
 # =============================================================================
 # Grant Deploy SA the Roles Needed for Cloud Run Deployment
 # =============================================================================
