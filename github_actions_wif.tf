@@ -66,6 +66,7 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   attribute_mapping = {
     "google.subject"           = "assertion.sub"
     "attribute.aud"           = "assertion.aud"
+    "attribute.repository"    = "assertion.repository"
   }
 
   attribute_condition = <<EOT
