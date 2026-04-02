@@ -66,6 +66,7 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   attribute_mapping = {
     "google.subject"           = "assertion.sub"
     "attribute.aud"           = "assertion.aud"
+    "attribute.repository"    = "assertion.repository"
   }
 
   attribute_condition = <<EOT
@@ -92,6 +93,15 @@ resource "google_service_account_iam_member" "wif_token_creator" {
   service_account_id = google_service_account.github_actions_deploy.name
   role               = "roles/iam.serviceAccountTokenCreator"
   member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repo}"
+}
+
+# Pool-level binding (no attribute restriction) — for testing only
+# If this works but the attribute-based one doesn't, the issue is with
+# how google-github-actions/auth sends the repository attribute in the OIDC token
+resource "google_service_account_iam_member" "wif_token_creator_pool" {
+  service_account_id = google_service_account.github_actions_deploy.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}"
 }
 
 # =============================================================================
