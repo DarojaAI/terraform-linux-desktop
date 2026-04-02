@@ -40,6 +40,8 @@ github_actions_enabled = true
 # gcloud secrets versions access latest --secret="dev-nexus-prod_ANTHROPIC_API_KEY"
 # gcloud secrets versions access latest --secret="dev-nexus-prod_POSTGRES_PASSWORD"
 github_token      = "prod_github_token_from_secret_manager"
+github_client_id     = "placeholder-github-client-id"
+github_client_secret = "placeholder-github-client-secret"
 anthropic_api_key = "prod_anthropic_key_from_secret_manager"
 postgres_db_password = "prod_db_password_from_secret_manager"
 
