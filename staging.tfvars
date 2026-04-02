@@ -82,6 +82,7 @@ allowed_origin_regex = "https://.*-milan-patels-projects-187b35de\\.vercel\\.app
 # Example:
 #   pattern_miner_url = "https://pattern-miner-staging.run.app"
 #   pattern_miner_token = ""  # Leave empty, not required yet
+action_agent_token  = ""  # Optional, not currently required
 
 orchestrator_url    = ""  # Add staging orchestrator URL when available
 orchestrator_token  = ""  # Optional, not currently required

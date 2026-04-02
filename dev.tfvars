@@ -84,6 +84,7 @@ allowed_origin_regex = "https://.*-milan-patels-projects-187b35de\\.vercel\\.app
 # Tokens are optional (not currently required by services)
 # Example:
 #   pattern_miner_url = "https://pattern-miner.run.app"
+action_agent_token    = ""  # Optional, not currently required
 #   pattern_miner_token = ""  # Leave empty, not required yet
 
 orchestrator_url      = ""  # Add if orchestrator-dev service exists
