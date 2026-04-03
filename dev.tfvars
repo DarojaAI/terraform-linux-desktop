@@ -32,6 +32,7 @@ github_actions_enabled = true
 # Get values from: gcloud secrets versions access latest --secret="dev-nexus-dev_GITHUB_TOKEN" etc.
 github_token      = "github_pat_dev_placeholder"      # Replace with actual token from Secret Manager
 anthropic_api_key = "sk-ant-dev-placeholder"          # Replace with actual key from Secret Manager
+jwt_secret        = "dev-jwt-secret-placeholder-32chars!"  # Replace with actual secret in prod
 postgres_db_password = "dev-db-password-placeholder"  # Replace with actual password from Secret Manager
 
 # ====================================
