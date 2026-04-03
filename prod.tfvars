@@ -35,7 +35,7 @@ github_token      = ""  # Set from Secret Manager
 github_client_id  = ""  # Set from Secret Manager
 github_client_secret = ""  # Set from Secret Manager
 anthropic_api_key = ""  # Set from Secret Manager
-jwt_secret        = ""  # Set from Secret Manager (min 32 chars)
+jwt_secret        = "prod-jwt-secret-placeholder-32chars!"  # Set from Secret Manager (min 32 chars)
 postgres_db_password = ""  # Set from Secret Manager
 
 # ====================================
