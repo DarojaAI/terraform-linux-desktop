@@ -65,9 +65,12 @@ import_wif() {
   terraform import "$resource" "$gcp_id" 2>/dev/null && echo "    OK" || echo "    SKIP/FAIL"
 }
 
-# Storage bucket
+# Storage bucket — prod uses legacy name, dev/staging use secret_prefix naming
 import_bucket() {
   local resource="$1"; local bucket_name="$2"
+  if [[ "$ENV" == "prod" ]]; then
+    bucket_name="globalbiting-dev-postgres-backups"
+  fi
   echo "  Importing bucket: $resource -> $bucket_name"
   terraform import "$resource" "$bucket_name" 2>/dev/null && echo "    OK" || echo "    SKIP/FAIL"
 }
