@@ -484,15 +484,13 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       }
 
       # LangSmith Configuration (LLM Observability)
-      dynamic "env" {
-        for_each = var.langsmith_api_key != "" ? { langsmith_api_key = "" } : {}
-        content {
-          name = "LANGSMITH_API_KEY"
-          value_source {
-            secret_key_ref {
-              secret  = google_secret_manager_secret.langsmith_api_key[0].secret_id
-              version = "latest"
-            }
+      env {
+        count = var.langsmith_api_key != "" ? 1 : 0
+        name  = "LANGSMITH_API_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.langsmith_api_key[count.index].secret_id
+            version = "latest"
           }
         }
       }
@@ -513,83 +511,67 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       }
 
       # Frontend URL for OAuth callback (not sensitive, plain env var)
-      dynamic "env" {
-        for_each = var.frontend_url != "" ? { frontend = "" } : {}
-        content {
-          name  = "FRONTEND_URL"
-          value = var.frontend_url
-        }
+      env {
+        count = var.frontend_url != "" ? 1 : 0
+        name  = "FRONTEND_URL"
+        value = var.frontend_url
       }
 
       # Optional: External agent URLs
-      dynamic "env" {
-        for_each = var.orchestrator_url != "" ? { orchestrator_url = "" } : {}
-        content {
-          name  = "ORCHESTRATOR_URL"
-          value = var.orchestrator_url
-        }
+      env {
+        count = var.orchestrator_url != "" ? 1 : 0
+        name  = "ORCHESTRATOR_URL"
+        value = var.orchestrator_url
       }
 
-      dynamic "env" {
-        for_each = var.log_attacker_url != "" ? { log_attacker_url = "" } : {}
-        content {
-          name  = "LOG_ATTACKER_URL"
-          value = var.log_attacker_url
-        }
+      env {
+        count = var.log_attacker_url != "" ? 1 : 0
+        name  = "LOG_ATTACKER_URL"
+        value = var.log_attacker_url
       }
 
-      dynamic "env" {
-        for_each = var.pattern_miner_url != "" ? { pattern_miner_url = "" } : {}
-        content {
-          name  = "PATTERN_MINER_URL"
-          value = var.pattern_miner_url
-        }
+      env {
+        count = var.pattern_miner_url != "" ? 1 : 0
+        name  = "PATTERN_MINER_URL"
+        value = var.pattern_miner_url
       }
 
-      dynamic "env" {
-        for_each = var.action_agent_url != "" ? { action_agent_url = "" } : {}
-        content {
-          name  = "ACTION_AGENT_URL"
-          value = var.action_agent_url
-        }
+      env {
+        count = var.action_agent_url != "" ? 1 : 0
+        name  = "ACTION_AGENT_URL"
+        value = var.action_agent_url
       }
 
       # Optional: External agent authentication tokens
-      dynamic "env" {
-        for_each = var.orchestrator_token != "" ? { orchestrator_token = "" } : {}
-        content {
-          name = "ORCHESTRATOR_TOKEN"
-          value_source {
-            secret_key_ref {
-              secret  = google_secret_manager_secret.orchestrator_token[0].secret_id
-              version = "latest"
-            }
+      env {
+        count = var.orchestrator_token != "" ? 1 : 0
+        name  = "ORCHESTRATOR_TOKEN"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.orchestrator_token[count.index].secret_id
+            version = "latest"
           }
         }
       }
 
-      dynamic "env" {
-        for_each = var.pattern_miner_token != "" ? { pattern_miner_token = "" } : {}
-        content {
-          name = "PATTERN_MINER_TOKEN"
-          value_source {
-            secret_key_ref {
-              secret  = google_secret_manager_secret.pattern_miner_token[0].secret_id
-              version = "latest"
-            }
+      env {
+        count = var.pattern_miner_token != "" ? 1 : 0
+        name  = "PATTERN_MINER_TOKEN"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.pattern_miner_token[count.index].secret_id
+            version = "latest"
           }
         }
       }
 
-      dynamic "env" {
-        for_each = var.action_agent_token != "" ? { action_agent_token = "" } : {}
-        content {
-          name = "ACTION_AGENT_TOKEN"
-          value_source {
-            secret_key_ref {
-              secret  = google_secret_manager_secret.action_agent_token[0].secret_id
-              version = "latest"
-            }
+      env {
+        count = var.action_agent_token != "" ? 1 : 0
+        name  = "ACTION_AGENT_TOKEN"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.action_agent_token[count.index].secret_id
+            version = "latest"
           }
         }
       }
