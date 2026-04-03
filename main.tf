@@ -487,7 +487,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
         name = "LANGSMITH_API_KEY"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.langsmith_api_key.secret_id
+            secret  = google_secret_manager_secret.langsmith_api_key[0].secret_id
             version = "latest"
           }
         }
@@ -540,7 +540,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
         name = "ORCHESTRATOR_TOKEN"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.orchestrator_token.secret_id
+            secret  = google_secret_manager_secret.orchestrator_token[0].secret_id
             version = "latest"
           }
         }
@@ -550,7 +550,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
         name = "PATTERN_MINER_TOKEN"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.pattern_miner_token.secret_id
+            secret  = google_secret_manager_secret.pattern_miner_token[0].secret_id
             version = "latest"
           }
         }
@@ -560,7 +560,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
         name = "ACTION_AGENT_TOKEN"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.action_agent_token.secret_id
+            secret  = google_secret_manager_secret.action_agent_token[0].secret_id
             version = "latest"
           }
         }
