@@ -105,30 +105,12 @@ resource "google_service_account_iam_member" "wif_token_creator_pool" {
 }
 
 # =============================================================================
-# Grant Deploy SA the Roles Needed for Cloud Run Deployment
+# Grant Deploy SA Project Editor (dev/staging only — use narrower roles in prod)
 # =============================================================================
 
-resource "google_project_iam_member" "deploy_cloud_run_admin" {
+resource "google_project_iam_member" "deploy_editor" {
   project = var.project_id
-  role    = "roles/run.admin"
-  member   = "serviceAccount:${google_service_account.github_actions_deploy.email}"
-}
-
-resource "google_project_iam_member" "deploy_storage_admin" {
-  project = var.project_id
-  role    = "roles/storage.admin"
-  member   = "serviceAccount:${google_service_account.github_actions_deploy.email}"
-}
-
-resource "google_project_iam_member" "deploy_cloud_build" {
-  project = var.project_id
-  role    = "roles/cloudbuild.builds.builder"
-  member   = "serviceAccount:${google_service_account.github_actions_deploy.email}"
-}
-
-resource "google_project_iam_member" "deploy_secretmanager" {
-  project = var.project_id
-  role    = "roles/secretmanager.secretAccessor"
+  role    = "roles/editor"
   member   = "serviceAccount:${google_service_account.github_actions_deploy.email}"
 }
 
