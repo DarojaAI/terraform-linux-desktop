@@ -74,7 +74,7 @@ allow_unauthenticated = true
 require_auth_for_write = true
 
 # CORS - restrict to production frontend only
-allowed_origin_regex = "https://your-production-frontend\\.vercel\\.app"
+allowed_origin_regex = "https://dev-nexus-frontend\\.vercel\\.app"
 
 # Service accounts
 allowed_service_accounts = []
