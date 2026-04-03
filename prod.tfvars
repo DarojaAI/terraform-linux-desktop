@@ -70,7 +70,7 @@ timeout_seconds      = 300
 # Security - Production Settings
 # ====================================
 
-allow_unauthenticated = false
+allow_unauthenticated = true
 require_auth_for_write = true
 
 # CORS - restrict to production frontend only
