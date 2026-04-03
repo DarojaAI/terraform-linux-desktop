@@ -485,7 +485,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
       # LangSmith Configuration (LLM Observability)
       dynamic "env" {
-        for_each = var.langsmith_api_key != "" ? toset(["langsmith"]) : []
+        for_each = var.langsmith_api_key != "" ? { langsmith_api_key = "" } : {}
         content {
           name = "LANGSMITH_API_KEY"
           value_source {
@@ -514,7 +514,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
       # Frontend URL for OAuth callback (not sensitive, plain env var)
       dynamic "env" {
-        for_each = var.frontend_url != "" ? toset(["frontend"]) : []
+        for_each = var.frontend_url != "" ? { frontend = "" } : {}
         content {
           name  = "FRONTEND_URL"
           value = var.frontend_url
@@ -523,7 +523,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
       # Optional: External agent URLs
       dynamic "env" {
-        for_each = var.orchestrator_url != "" ? toset(["orchestrator_url"]) : []
+        for_each = var.orchestrator_url != "" ? { orchestrator_url = "" } : {}
         content {
           name  = "ORCHESTRATOR_URL"
           value = var.orchestrator_url
@@ -531,7 +531,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       }
 
       dynamic "env" {
-        for_each = var.log_attacker_url != "" ? toset(["log_attacker_url"]) : []
+        for_each = var.log_attacker_url != "" ? { log_attacker_url = "" } : {}
         content {
           name  = "LOG_ATTACKER_URL"
           value = var.log_attacker_url
@@ -539,7 +539,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       }
 
       dynamic "env" {
-        for_each = var.pattern_miner_url != "" ? toset(["pattern_miner_url"]) : []
+        for_each = var.pattern_miner_url != "" ? { pattern_miner_url = "" } : {}
         content {
           name  = "PATTERN_MINER_URL"
           value = var.pattern_miner_url
@@ -547,7 +547,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       }
 
       dynamic "env" {
-        for_each = var.action_agent_url != "" ? toset(["action_agent_url"]) : []
+        for_each = var.action_agent_url != "" ? { action_agent_url = "" } : {}
         content {
           name  = "ACTION_AGENT_URL"
           value = var.action_agent_url
@@ -556,7 +556,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
       # Optional: External agent authentication tokens
       dynamic "env" {
-        for_each = var.orchestrator_token != "" ? toset(["orchestrator_token"]) : []
+        for_each = var.orchestrator_token != "" ? { orchestrator_token = "" } : {}
         content {
           name = "ORCHESTRATOR_TOKEN"
           value_source {
@@ -569,7 +569,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       }
 
       dynamic "env" {
-        for_each = var.pattern_miner_token != "" ? toset(["pattern_miner_token"]) : []
+        for_each = var.pattern_miner_token != "" ? { pattern_miner_token = "" } : {}
         content {
           name = "PATTERN_MINER_TOKEN"
           value_source {
@@ -582,7 +582,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       }
 
       dynamic "env" {
-        for_each = var.action_agent_token != "" ? toset(["action_agent_token"]) : []
+        for_each = var.action_agent_token != "" ? { action_agent_token = "" } : {}
         content {
           name = "ACTION_AGENT_TOKEN"
           value_source {
