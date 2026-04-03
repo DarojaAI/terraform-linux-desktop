@@ -136,7 +136,6 @@ resource "google_secret_manager_secret_version" "anthropic_api_key" {
 
 # LangSmith API Key (optional - only created if API key is provided)
 resource "google_secret_manager_secret" "langsmith_api_key" {
-  count     = var.langsmith_api_key != "" ? 1 : 0
   secret_id = "${var.secret_prefix}_LANGSMITH_API_KEY"
 
   replication {
@@ -149,15 +148,12 @@ resource "google_secret_manager_secret" "langsmith_api_key" {
 }
 
 resource "google_secret_manager_secret_version" "langsmith_api_key" {
-  count       = var.langsmith_api_key != "" ? 1 : 0
-  secret      = google_secret_manager_secret.langsmith_api_key[0].id
-  secret_data = var.langsmith_api_key
+  secret      = google_secret_manager_secret.langsmith_api_key.id
+  secret_data = var.langsmith_api_key != "" ? var.langsmith_api_key : ""  # Empty if not provided
 }
 
-# External A2A Agent Tokens (optional - only created if tokens are provided)
-
+# External A2A Agent Tokens (always created - empty string if not provided)
 resource "google_secret_manager_secret" "pattern_miner_token" {
-  count     = var.pattern_miner_token != "" ? 1 : 0
   secret_id = "${var.secret_prefix}_PATTERN_MINER_TOKEN"
 
   replication {
@@ -170,13 +166,11 @@ resource "google_secret_manager_secret" "pattern_miner_token" {
 }
 
 resource "google_secret_manager_secret_version" "pattern_miner_token" {
-  count       = var.pattern_miner_token != "" ? 1 : 0
-  secret      = google_secret_manager_secret.pattern_miner_token[0].id
-  secret_data = var.pattern_miner_token
+  secret      = google_secret_manager_secret.pattern_miner_token.id
+  secret_data = var.pattern_miner_token != "" ? var.pattern_miner_token : ""
 }
 
 resource "google_secret_manager_secret" "action_agent_token" {
-  count     = var.action_agent_token != "" ? 1 : 0
   secret_id = "${var.secret_prefix}_ACTION_AGENT_TOKEN"
 
   replication {
@@ -189,20 +183,17 @@ resource "google_secret_manager_secret" "action_agent_token" {
 }
 
 resource "google_secret_manager_secret_version" "action_agent_token" {
-  count       = var.action_agent_token != "" ? 1 : 0
-  secret      = google_secret_manager_secret.action_agent_token[0].id
-  secret_data = var.action_agent_token
+  secret      = google_secret_manager_secret.action_agent_token.id
+  secret_data = var.action_agent_token != "" ? var.action_agent_token : ""
 }
 
 resource "google_secret_manager_secret_iam_member" "action_agent_token_access" {
-  count     = var.action_agent_token != "" ? 1 : 0
-  secret_id = google_secret_manager_secret.action_agent_token[0].id
+  secret_id = google_secret_manager_secret.action_agent_token.id
   role      = "roles/secretmanager.secretAccessor"
   member    = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
 }
 
 resource "google_secret_manager_secret" "orchestrator_token" {
-  count     = var.orchestrator_token != "" ? 1 : 0
   secret_id = "${var.secret_prefix}_ORCHESTRATOR_TOKEN"
 
   replication {
@@ -215,9 +206,8 @@ resource "google_secret_manager_secret" "orchestrator_token" {
 }
 
 resource "google_secret_manager_secret_version" "orchestrator_token" {
-  count       = var.orchestrator_token != "" ? 1 : 0
-  secret      = google_secret_manager_secret.orchestrator_token[0].id
-  secret_data = var.orchestrator_token
+  secret      = google_secret_manager_secret.orchestrator_token.id
+  secret_data = var.orchestrator_token != "" ? var.orchestrator_token : ""
 }
 
 # Grant Cloud Run service account access to secrets
@@ -485,11 +475,10 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
       # LangSmith Configuration (LLM Observability)
       env {
-        count = var.langsmith_api_key != "" ? 1 : 0
-        name  = "LANGSMITH_API_KEY"
+        name = "LANGSMITH_API_KEY"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.langsmith_api_key[count.index].secret_id
+            secret  = google_secret_manager_secret.langsmith_api_key.secret_id
             version = "latest"
           }
         }
@@ -510,67 +499,59 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
         value = var.langsmith_endpoint
       }
 
-      # Frontend URL for OAuth callback (not sensitive, plain env var)
+      # Frontend URL for OAuth callback (always created, empty string if not set)
       env {
-        count = var.frontend_url != "" ? 1 : 0
         name  = "FRONTEND_URL"
         value = var.frontend_url
       }
 
-      # Optional: External agent URLs
+      # External agent URLs (always created, empty string if not set)
       env {
-        count = var.orchestrator_url != "" ? 1 : 0
         name  = "ORCHESTRATOR_URL"
         value = var.orchestrator_url
       }
 
       env {
-        count = var.log_attacker_url != "" ? 1 : 0
         name  = "LOG_ATTACKER_URL"
         value = var.log_attacker_url
       }
 
       env {
-        count = var.pattern_miner_url != "" ? 1 : 0
         name  = "PATTERN_MINER_URL"
         value = var.pattern_miner_url
       }
 
       env {
-        count = var.action_agent_url != "" ? 1 : 0
         name  = "ACTION_AGENT_URL"
         value = var.action_agent_url
       }
 
       # Optional: External agent authentication tokens
       env {
-        count = var.orchestrator_token != "" ? 1 : 0
-        name  = "ORCHESTRATOR_TOKEN"
+        name = "ORCHESTRATOR_TOKEN"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.orchestrator_token[count.index].secret_id
+            secret  = google_secret_manager_secret.orchestrator_token.secret_id
             version = "latest"
           }
         }
       }
 
       env {
-        count = var.pattern_miner_token != "" ? 1 : 0
-        name  = "PATTERN_MINER_TOKEN"
+        name = "PATTERN_MINER_TOKEN"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.pattern_miner_token[count.index].secret_id
+            secret  = google_secret_manager_secret.pattern_miner_token.secret_id
             version = "latest"
           }
         }
       }
 
       env {
-        count = var.action_agent_token != "" ? 1 : 0
-        name  = "ACTION_AGENT_TOKEN"
+        name = "ACTION_AGENT_TOKEN"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.action_agent_token[count.index].secret_id
+            secret  = google_secret_manager_secret.action_agent_token.secret_id
             version = "latest"
           }
         }
