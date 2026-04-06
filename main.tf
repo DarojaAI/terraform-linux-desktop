@@ -514,6 +514,12 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
         value = var.frontend_url
       }
 
+      # Backend URL for OAuth callback (must match GitHub OAuth App registered callback)
+      env {
+        name  = "BACKEND_URL"
+        value = var.backend_url
+      }
+
       # External agent URLs (always created, empty string if not set)
       env {
         name  = "ORCHESTRATOR_URL"

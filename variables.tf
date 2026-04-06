@@ -96,6 +96,12 @@ variable "frontend_url" {
   default     = ""
 }
 
+variable "backend_url" {
+  description = "Backend URL for OAuth callback (e.g., https://pattern-discovery-agent-123.uc.a.run.app)"
+  type        = string
+  default     = ""
+}
+
 variable "jwt_expire_hours" {
   description = "Hours until JWT token expires"
   type        = number
