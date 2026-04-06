@@ -82,6 +82,9 @@ allowed_origin_regex = "https://.*-milan-patels-projects-187b35de\\.vercel\\.app
 # Integration (Optional)
 # ====================================
 
+# Backend URL for GitHub OAuth callback (must match GitHub OAuth App registered callback)
+backend_url = "https://pattern-discovery-agent-665374072631.us-central1.run.app"
+
 # External A2A Agent URLs and Tokens
 # To enable pattern-miner for vector generation, set pattern_miner_url
 # Tokens are optional (not currently required by services)
