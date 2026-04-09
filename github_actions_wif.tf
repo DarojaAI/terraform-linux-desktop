@@ -68,12 +68,13 @@ resource "google_iam_workload_identity_pool_provider" "github" {
     "attribute.aud"           = "assertion.aud"
     "attribute.repository"    = "assertion.repository"
   }
-  # NOTE: attribute_condition intentionally omitted.
-  # GCP WIF provider auto-generates a condition when attribute_condition is
-  # unset and only google.subject is mapped. That auto-generated condition
-  # references unmapped claims like attribute.repository, causing 400 errors.
-  # Here we map attribute.repository so the auto-generated condition is valid.
-  # Repo-level access is controlled by the IAM binding on the SA instead.
+
+  # NOTE: attribute_condition must be set explicitly. GCP's auto-generated
+  # condition references ALL mapped claims (including attribute.repository),
+  # but the GitHub OIDC token only provides google.subject natively.
+  # Setting this prevents GCP's auto-generation and restricts access to
+  # the specific repo configured via var.github_repo.
+  attribute_condition = "attribute.repository==\"${var.github_repo}\""
 
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"
