@@ -82,30 +82,12 @@ resource "google_iam_workload_identity_pool_provider" "github" {
 }
 
 # =============================================================================
-# Allow the Workload Identity Pool to Impersonate the Deploy SA
+# NOTE: WIF → SA IAM bindings (workloadIdentityUser, serviceAccountTokenCreator)
+# are managed via gcloud commands in .github/workflows/terraform-apply.yml, NOT
+# via google_service_account_iam_member resources. The terraform provider's IAM
+# member format is rejected by GCP's IAM API with "unknown type" errors for
+# principalSet:// identifiers. The gcloud approach is tested and works.
 # =============================================================================
-
-resource "google_service_account_iam_member" "wif_impersonate" {
-  service_account_id = google_service_account.github_actions_deploy.name
-  role           = "roles/iam.workloadIdentityUser"
-  member         = "principalSet://iam.googleapis.com/projects/665374072631/locations/global/workloadIdentityPools/github-pool/attribute.repository/${var.github_repo}"
-}
-
-# Allow WIF pool to mint access tokens for the deploy SA (needed for token_format: access_token)
-resource "google_service_account_iam_member" "wif_token_creator" {
-  service_account_id = google_service_account.github_actions_deploy.name
-  role               = "roles/iam.serviceAccountTokenCreator"
-  member             = "principalSet://iam.googleapis.com/projects/665374072631/locations/global/workloadIdentityPools/github-pool/attribute.repository/${var.github_repo}"
-}
-
-# Pool-level binding (no attribute restriction) — for testing only
-# If this works but the attribute-based one doesn't, the issue is with
-# how google-github-actions/auth sends the repository attribute in the OIDC token
-resource "google_service_account_iam_member" "wif_token_creator_pool" {
-  service_account_id = google_service_account.github_actions_deploy.name
-  role               = "roles/iam.serviceAccountTokenCreator"
-  member             = "principalSet://iam.googleapis.com/projects/665374072631/locations/global/workloadIdentityPools/github-pool"
-}
 
 # =============================================================================
 # Grant Deploy SA Project Editor (dev/staging only — use narrower roles in prod)
