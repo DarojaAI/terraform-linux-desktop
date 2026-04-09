@@ -69,9 +69,13 @@ resource "google_iam_workload_identity_pool_provider" "github" {
     "attribute.repository"    = "assertion.repository"
   }
 
-  attribute_condition = <<EOT
-    assertion.repository == "${var.github_repo}"
-EOT
+  # NOTE: attribute_condition is intentionally unset (="").
+  # GCP auto-generates a condition when only google.subject is mapped,
+  # and that auto-generated condition may reference unmapped claims like
+  # attribute.repository, causing validation failures.
+  # Repo-level access control is handled by the IAM binding on the SA:
+  # principalSet://iam.googleapis.com/{pool}/attribute.repository/${var.github_repo}
+  attribute_condition = ""
 
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"
