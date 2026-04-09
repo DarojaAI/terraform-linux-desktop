@@ -88,14 +88,14 @@ resource "google_iam_workload_identity_pool_provider" "github" {
 resource "google_service_account_iam_member" "wif_impersonate" {
   service_account_id = google_service_account.github_actions_deploy.name
   role           = "roles/iam.workloadIdentityUser"
-  member         = "principalSet://iam.googleapis.com/projects/globalbiting-dev/locations/global/workloadIdentityPools/github-pool/attribute.repository/${var.github_repo}"
+  member         = "principalSet://iam.googleapis.com/projects/665374072631/locations/global/workloadIdentityPools/github-pool/attribute.repository/${var.github_repo}"
 }
 
 # Allow WIF pool to mint access tokens for the deploy SA (needed for token_format: access_token)
 resource "google_service_account_iam_member" "wif_token_creator" {
   service_account_id = google_service_account.github_actions_deploy.name
   role               = "roles/iam.serviceAccountTokenCreator"
-  member             = "principalSet://iam.googleapis.com/projects/globalbiting-dev/locations/global/workloadIdentityPools/github-pool/attribute.repository/${var.github_repo}"
+  member             = "principalSet://iam.googleapis.com/projects/665374072631/locations/global/workloadIdentityPools/github-pool/attribute.repository/${var.github_repo}"
 }
 
 # Pool-level binding (no attribute restriction) — for testing only
@@ -104,7 +104,7 @@ resource "google_service_account_iam_member" "wif_token_creator" {
 resource "google_service_account_iam_member" "wif_token_creator_pool" {
   service_account_id = google_service_account.github_actions_deploy.name
   role               = "roles/iam.serviceAccountTokenCreator"
-  member             = "principalSet://iam.googleapis.com/projects/globalbiting-dev/locations/global/workloadIdentityPools/github-pool"
+  member             = "principalSet://iam.googleapis.com/projects/665374072631/locations/global/workloadIdentityPools/github-pool"
 }
 
 # =============================================================================
