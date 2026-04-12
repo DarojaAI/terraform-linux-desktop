@@ -8,7 +8,8 @@
 #   In your environment's .tfvars file, set:
 #     github_actions_enabled = true
 #     github_repo = "patelmm79/dev-nexus"
-#     github_owner = "patelmm79"
+#     github_org  = "patelmm79"       # required when github_actions_scope = "organization"
+#     github_actions_scope = "repository"   # or "organization"
 #
 #   Then run:
 #     terraform plan -var-file=prod.tfvars -out=tfplan
@@ -66,15 +67,17 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   attribute_mapping = {
     "google.subject"           = "assertion.sub"
     "attribute.aud"           = "assertion.aud"
-    "attribute.repository"    = "assertion.repository"
+    "attribute.repository"     = "assertion.repository"
+    "attribute.repository_owner" = "assertion.repository_owner"
   }
 
   # NOTE: attribute_condition must be set explicitly. GCP's auto-generated
-  # condition references ALL mapped claims (including attribute.repository),
-  # but the GitHub OIDC token only provides google.subject natively.
-  # Setting this prevents GCP's auto-generation and restricts access to
-  # the specific repo configured via var.github_repo.
-  attribute_condition = "attribute.repository==\"${var.github_repo}\""
+  # condition references ALL mapped claims, but the GitHub OIDC token only
+  # provides google.subject natively. Setting this prevents GCP's auto-generation.
+  #
+  # Repository scope: restricts to a single repo (recommended for prod).
+  # Organization scope: restricts to all repos owned by the org.
+  attribute_condition = var.github_actions_scope == "organization" ? "attribute.repository_owner==\"${var.github_org}\"" : "attribute.repository==\"${var.github_repo}\""
 
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"

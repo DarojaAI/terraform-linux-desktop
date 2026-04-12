@@ -11,7 +11,7 @@ variable "github_actions_enabled" {
 }
 
 variable "github_repo" {
-  description = "GitHub repository in 'owner/repo' format (e.g., 'patelmm79/dev-nexus')"
+  description = "GitHub repository in 'owner/repo' format (e.g., 'patelmm79/dev-nexus') — used when github_actions_scope is 'repository'"
   type        = string
   default     = "patelmm79/dev-nexus"
 }
@@ -20,6 +20,23 @@ variable "github_owner" {
   description = "GitHub repository owner (e.g., 'patelmm79')"
   type        = string
   default     = "patelmm79"
+}
+
+variable "github_org" {
+  description = "GitHub organization slug (e.g., 'patelmm79') — used when github_actions_scope is 'organization'. All repos in this org will be able to authenticate."
+  type        = string
+  default     = ""
+}
+
+variable "github_actions_scope" {
+  description = "Scope for GitHub Actions WIF access. 'repository' = single repo (strictest). 'organization' = all repos in github_org (less restrictive)."
+  type        = string
+  default     = "repository"
+
+  validation {
+    condition     = contains(["repository", "organization"], var.github_actions_scope)
+    error_message = "github_actions_scope must be 'repository' or 'organization'."
+  }
 }
 
 # ====================================

@@ -23,7 +23,10 @@ region     = "us-central1"
 # GitHub Actions WIF
 # ====================================
 
-github_actions_enabled = true
+github_actions_enabled   = true
+github_actions_scope    = "repository"  # "repository" (single repo) or "organization" (all org repos)
+github_repo             = "patelmm79/dev-nexus"
+github_org              = "patelmm79"   # required when github_actions_scope = "organization"
 
 # ====================================
 # Secrets (Use Secret Manager in production!)
