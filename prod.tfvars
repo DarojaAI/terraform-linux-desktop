@@ -55,7 +55,6 @@ langsmith_endpoint          = "https://api.smith.langchain.com"
 # ====================================
 
 knowledge_base_repo = "DarojaAI/dev-nexus"
-github_repo        = "DarojaAI/dev-nexus"
 github_owner       = "DarojaAI"
 
 # ====================================
