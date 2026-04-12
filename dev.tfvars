@@ -30,21 +30,21 @@ github_actions_enabled = true
 
 # IMPORTANT: For development only - use actual values from Secret Manager in production
 # Get values from: gcloud secrets versions access latest --secret="dev-nexus-dev_GITHUB_TOKEN" etc.
-github_token      = "github_pat_dev_placeholder"      # Replace with actual token from Secret Manager
-github_client_id  = "dev_github_client_id_placeholder"  # Replace with actual ID from GitHub OAuth App
-github_client_secret = "dev_github_client_secret_placeholder"  # Replace with actual secret
-anthropic_api_key = "sk-ant-dev-placeholder"          # Replace with actual key from Secret Manager
-jwt_secret        = "dev-jwt-secret-placeholder-32chars!"  # Replace with actual secret in prod
-postgres_db_password = "dev-db-password-placeholder"  # Replace with actual password from Secret Manager
+github_token         = "github_pat_dev_placeholder"           # Replace with actual token from Secret Manager
+github_client_id     = "dev_github_client_id_placeholder"     # Replace with actual ID from GitHub OAuth App
+github_client_secret = "dev_github_client_secret_placeholder" # Replace with actual secret
+anthropic_api_key    = "sk-ant-dev-placeholder"               # Replace with actual key from Secret Manager
+jwt_secret           = "dev-jwt-secret-placeholder-32chars!"  # Replace with actual secret in prod
+postgres_db_password = "dev-db-password-placeholder"          # Replace with actual password from Secret Manager
 
 # ====================================
 # LangSmith Configuration (LLM Observability)
 # ====================================
 
-langsmith_api_key           = ""  # Get from https://smith.langchain.com/
-langsmith_project           = "dev-nexus-dev"
-langsmith_tracing_enabled   = false
-langsmith_endpoint          = "https://api.smith.langchain.com"
+langsmith_api_key         = "" # Get from https://smith.langchain.com/
+langsmith_project         = "dev-nexus-dev"
+langsmith_tracing_enabled = false
+langsmith_endpoint        = "https://api.smith.langchain.com"
 
 # ====================================
 # Knowledge Base
@@ -59,9 +59,9 @@ knowledge_base_repo = "DarojaAI/dev-nexus"
 # Keep resource usage low for cost-efficiency
 cpu                  = "1"
 memory               = "1Gi"
-cpu_always_allocated = false  # Allow cold starts in dev
-min_instances        = 0      # Scale to zero for cost savings
-max_instances        = 5      # Lower max for dev testing
+cpu_always_allocated = false # Allow cold starts in dev
+min_instances        = 0     # Scale to zero for cost savings
+max_instances        = 5     # Lower max for dev testing
 timeout_seconds      = 300
 
 # ====================================
@@ -72,7 +72,7 @@ timeout_seconds      = 300
 allow_unauthenticated = true
 
 # For local testing/staging
-allowed_service_accounts = []
+allowed_service_accounts         = []
 create_external_service_accounts = false
 
 # CORS for local development
@@ -87,23 +87,23 @@ allowed_origin_regex = "https://.*-milan-patels-projects-187b35de\\.vercel\\.app
 # Tokens are optional (not currently required by services)
 # Example:
 #   pattern_miner_url = "https://pattern-miner.run.app"
-action_agent_token    = ""  # Optional, not currently required
+action_agent_token = "" # Optional, not currently required
 #   pattern_miner_token = ""  # Leave empty, not required yet
 
-orchestrator_url      = ""  # Add if orchestrator-dev service exists
-orchestrator_token    = ""  # Optional, not currently required
-log_attacker_url      = ""  # Add if log-attacker-dev service exists
-pattern_miner_url     = ""  # Add if pattern-miner-dev service exists
-pattern_miner_token   = ""  # Optional, not currently required
+orchestrator_url    = "" # Add if orchestrator-dev service exists
+orchestrator_token  = "" # Optional, not currently required
+log_attacker_url    = "" # Add if log-attacker-dev service exists
+pattern_miner_url   = "" # Add if pattern-miner-dev service exists
+pattern_miner_token = "" # Optional, not currently required
 
 # ====================================
 # Monitoring
 # ====================================
 
-enable_monitoring_alerts      = false
-alert_notification_channels   = []
-error_rate_threshold          = 5.0
-latency_threshold_ms          = 5000
+enable_monitoring_alerts    = false
+alert_notification_channels = []
+error_rate_threshold        = 5.0
+latency_threshold_ms        = 5000
 
 # ====================================
 # Resource Labels
@@ -119,13 +119,13 @@ labels = {
 # PostgreSQL - Development Settings
 # ====================================
 
-postgres_db_name          = "devnexus"
-postgres_db_user          = "devnexus"
-postgres_version          = "15"
-postgres_machine_type     = "e2-micro"  # FREE tier eligible
-postgres_disk_size_gb     = 30          # FREE tier eligible (30GB free)
-postgres_subnet_cidr      = "10.8.0.0/24"
-vpc_connector_cidr        = "10.8.1.0/28"
-allow_ssh_from_cidrs      = ["0.0.0.0/0"]  # Restrict in production!
-backup_retention_days     = 7
+postgres_db_name           = "devnexus"
+postgres_db_user           = "devnexus"
+postgres_version           = "15"
+postgres_machine_type      = "e2-micro" # FREE tier eligible
+postgres_disk_size_gb      = 30         # FREE tier eligible (30GB free)
+postgres_subnet_cidr       = "10.8.0.0/24"
+vpc_connector_cidr         = "10.8.1.0/28"
+allow_ssh_from_cidrs       = ["0.0.0.0/0"] # Restrict in production!
+backup_retention_days      = 7
 enable_postgres_monitoring = false

@@ -445,7 +445,7 @@ variable "vpc_connector_cidr" {
 variable "allow_ssh_from_cidrs" {
   description = "List of CIDR ranges allowed to SSH to PostgreSQL VM"
   type        = list(string)
-  default     = ["0.0.0.0/0"]  # Restrict in production!
+  default     = ["0.0.0.0/0"] # Restrict in production!
 }
 
 variable "allow_postgres_from_cidrs" {

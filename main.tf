@@ -136,7 +136,7 @@ resource "google_secret_manager_secret_version" "anthropic_api_key" {
 
 # LangSmith API Key (optional - only created if API key is provided)
 resource "google_secret_manager_secret" "langsmith_api_key" {
-  count     = 1  # Always created (empty if not used)
+  count     = 1 # Always created (empty if not used)
   secret_id = "${var.secret_prefix}_LANGSMITH_API_KEY"
 
   replication {
@@ -648,10 +648,10 @@ resource "google_cloudbuild_trigger" "dev_nexus_github" {
   }
 
   substitutions = {
-    _REGION               = var.region
-    _ENVIRONMENT          = var.environment
-    _KNOWLEDGE_BASE_REPO  = var.knowledge_base_repo
-    _FRONTEND_URL         = var.frontend_url
+    _REGION              = var.region
+    _ENVIRONMENT         = var.environment
+    _KNOWLEDGE_BASE_REPO = var.knowledge_base_repo
+    _FRONTEND_URL        = var.frontend_url
   }
 
   depends_on = [

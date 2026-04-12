@@ -47,10 +47,10 @@ resource "google_service_account" "github_actions_deploy" {
 
 resource "google_iam_workload_identity_pool" "github" {
   project                   = var.project_id
-  workload_identity_pool_id  = "github-pool"
-  display_name               = "GitHub Actions"
-  description                = "Workload Identity Pool for GitHub Actions"
-  disabled                   = !var.github_actions_enabled
+  workload_identity_pool_id = "github-pool"
+  display_name              = "GitHub Actions"
+  description               = "Workload Identity Pool for GitHub Actions"
+  disabled                  = !var.github_actions_enabled
 }
 
 # =============================================================================
@@ -61,13 +61,13 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   project                            = var.project_id
   workload_identity_pool_id          = google_iam_workload_identity_pool.github.workload_identity_pool_id
   workload_identity_pool_provider_id = "github-provider"
-  display_name                      = "DarojaAI/dev-nexus"
-  description                       = "GitHub Actions provider for DarojaAI/dev-nexus"
+  display_name                       = "DarojaAI/dev-nexus"
+  description                        = "GitHub Actions provider for DarojaAI/dev-nexus"
 
   attribute_mapping = {
-    "google.subject"           = "assertion.sub"
-    "attribute.aud"           = "assertion.aud"
-    "attribute.repository"     = "assertion.repository"
+    "google.subject"             = "assertion.sub"
+    "attribute.aud"              = "assertion.aud"
+    "attribute.repository"       = "assertion.repository"
     "attribute.repository_owner" = "assertion.repository_owner"
   }
 
@@ -99,7 +99,7 @@ resource "google_iam_workload_identity_pool_provider" "github" {
 resource "google_project_iam_member" "deploy_editor" {
   project = var.project_id
   role    = "roles/editor"
-  member   = "serviceAccount:${google_service_account.github_actions_deploy.email}"
+  member  = "serviceAccount:${google_service_account.github_actions_deploy.email}"
 }
 
 # =============================================================================
@@ -108,24 +108,24 @@ resource "google_project_iam_member" "deploy_editor" {
 
 output "wif_provider" {
   description = "Workload Identity Provider resource name — use as WIF_PROVIDER secret in GitHub"
-  value      = google_iam_workload_identity_pool.github.name
+  value       = google_iam_workload_identity_pool.github.name
   # Output format: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool
 }
 
 output "wif_provider_full" {
   description = "Full WIF Provider resource name (including the provider itself) — for reference"
-  value      = google_iam_workload_identity_pool_provider.github.name
+  value       = google_iam_workload_identity_pool_provider.github.name
   # Output format: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/github-provider
 }
 
 output "wif_service_account" {
   description = "Deploy service account email — use as WIF_SERVICE_ACCOUNT secret in GitHub"
-  value      = google_service_account.github_actions_deploy.email
+  value       = google_service_account.github_actions_deploy.email
 }
 
 output "github_actions_setup_complete" {
   description = "Whether GitHub Actions WIF is fully configured"
-  value      = var.github_actions_enabled ? true : false
+  value       = var.github_actions_enabled ? true : false
 }
 
 # =============================================================================

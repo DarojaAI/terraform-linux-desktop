@@ -199,10 +199,10 @@ resource "google_storage_bucket" "postgres_backups" {
 # Create persistent disk for PostgreSQL data
 # This disk survives VM recreation, preserving data
 resource "google_compute_disk" "postgres_data" {
-  name  = "dev-nexus-postgres-data"
-  type  = "pd-standard"
-  zone  = "${var.region}-b"
-  size  = var.postgres_disk_size_gb
+  name = "dev-nexus-postgres-data"
+  type = "pd-standard"
+  zone = "${var.region}-b"
+  size = var.postgres_disk_size_gb
   labels = merge(var.labels, {
     component = "database"
     database  = "postgresql"
@@ -262,8 +262,8 @@ resource "google_compute_instance" "postgres" {
     # Always assign external IP for internet access and pgAdmin
     # This is required because custom VPC networks don't have default route
     access_config {
-      nat_ip        = google_compute_address.postgres_external_ip.address
-      network_tier  = "STANDARD"
+      nat_ip       = google_compute_address.postgres_external_ip.address
+      network_tier = "STANDARD"
     }
   }
 
@@ -462,7 +462,7 @@ resource "google_monitoring_dashboard" "postgres" {
               dataSets = [{
                 timeSeriesQuery = {
                   timeSeriesFilter = {
-filter = "metric.type=\"compute.googleapis.com/instance/cpu/utilization\" AND resource.type=\"gce_instance\" AND resource.labels.instance_id=\"${google_compute_instance.postgres.instance_id}\""
+                    filter = "metric.type=\"compute.googleapis.com/instance/cpu/utilization\" AND resource.type=\"gce_instance\" AND resource.labels.instance_id=\"${google_compute_instance.postgres.instance_id}\""
                     aggregation = {
                       alignmentPeriod  = "60s"
                       perSeriesAligner = "ALIGN_MEAN"
@@ -501,9 +501,9 @@ resource "google_compute_resource_policy" "postgres_snapshot_policy" {
 
     snapshot_properties {
       labels = {
-        type        = "postgres-backup"
-        purpose     = "disaster-recovery"
-        managed_by  = "terraform"
+        type       = "postgres-backup"
+        purpose    = "disaster-recovery"
+        managed_by = "terraform"
       }
 
       storage_locations = [var.region]
@@ -529,7 +529,7 @@ resource "google_monitoring_alert_policy" "postgres_disk_usage" {
     display_name = "Disk usage > 80%"
 
     condition_threshold {
-filter          = "metric.type=\"agent.googleapis.com/disk/percent_used\" AND resource.type=\"gce_instance\" AND resource.labels.instance_id=\"${google_compute_instance.postgres.instance_id}\" AND metric.labels.device = \"sda1\""
+      filter          = "metric.type=\"agent.googleapis.com/disk/percent_used\" AND resource.type=\"gce_instance\" AND resource.labels.instance_id=\"${google_compute_instance.postgres.instance_id}\" AND metric.labels.device = \"sda1\""
       duration        = "300s"
       comparison      = "COMPARISON_GT"
       threshold_value = 80

@@ -27,18 +27,18 @@ region     = "us-central1"
 # gcloud secrets versions access latest --secret="dev-nexus-staging_GITHUB_TOKEN"
 # gcloud secrets versions access latest --secret="dev-nexus-staging_ANTHROPIC_API_KEY"
 # gcloud secrets versions access latest --secret="dev-nexus-staging_POSTGRES_PASSWORD"
-github_token      = "staging_github_token_from_secret_manager"
-anthropic_api_key = "staging_anthropic_key_from_secret_manager"
+github_token         = "staging_github_token_from_secret_manager"
+anthropic_api_key    = "staging_anthropic_key_from_secret_manager"
 postgres_db_password = "staging_db_password_from_secret_manager"
 
 # ====================================
 # LangSmith Configuration (LLM Observability)
 # ====================================
 
-langsmith_api_key           = ""  # Get from https://smith.langchain.com/
-langsmith_project           = "dev-nexus-staging"
-langsmith_tracing_enabled   = false
-langsmith_endpoint          = "https://api.smith.langchain.com"
+langsmith_api_key         = "" # Get from https://smith.langchain.com/
+langsmith_project         = "dev-nexus-staging"
+langsmith_tracing_enabled = false
+langsmith_endpoint        = "https://api.smith.langchain.com"
 
 # ====================================
 # Knowledge Base
@@ -53,9 +53,9 @@ knowledge_base_repo = "DarojaAI/dev-nexus"
 # Mid-tier resource allocation for testing
 cpu                  = "1"
 memory               = "2Gi"
-cpu_always_allocated = false  # Allow cold starts
-min_instances        = 0      # Scale to zero to save costs
-max_instances        = 10     # Allow more instances for load testing
+cpu_always_allocated = false # Allow cold starts
+min_instances        = 0     # Scale to zero to save costs
+max_instances        = 10    # Allow more instances for load testing
 timeout_seconds      = 300
 
 # ====================================
@@ -66,8 +66,8 @@ timeout_seconds      = 300
 allow_unauthenticated = false
 
 # Create service accounts for external integrations
-allowed_service_accounts = []
-create_external_service_accounts = true  # For testing with orchestrator/log-attacker
+allowed_service_accounts         = []
+create_external_service_accounts = true # For testing with orchestrator/log-attacker
 
 # CORS for staging frontend deployments
 allowed_origin_regex = "https://.*-milan-patels-projects-187b35de\\.vercel\\.app|https://staging-.*\\.vercel\\.app"
@@ -82,22 +82,22 @@ allowed_origin_regex = "https://.*-milan-patels-projects-187b35de\\.vercel\\.app
 # Example:
 #   pattern_miner_url = "https://pattern-miner-staging.run.app"
 #   pattern_miner_token = ""  # Leave empty, not required yet
-action_agent_token  = ""  # Optional, not currently required
+action_agent_token = "" # Optional, not currently required
 
-orchestrator_url    = ""  # Add staging orchestrator URL when available
-orchestrator_token  = ""  # Optional, not currently required
-log_attacker_url    = ""  # Add staging log-attacker URL when available
-pattern_miner_url   = ""  # Add staging pattern-miner URL when available
-pattern_miner_token = ""  # Optional, not currently required
+orchestrator_url    = "" # Add staging orchestrator URL when available
+orchestrator_token  = "" # Optional, not currently required
+log_attacker_url    = "" # Add staging log-attacker URL when available
+pattern_miner_url   = "" # Add staging pattern-miner URL when available
+pattern_miner_token = "" # Optional, not currently required
 
 # ====================================
 # Monitoring
 # ====================================
 
-enable_monitoring_alerts      = true
-alert_notification_channels   = []  # Add staging notification channels
-error_rate_threshold          = 5.0
-latency_threshold_ms          = 5000
+enable_monitoring_alerts    = true
+alert_notification_channels = [] # Add staging notification channels
+error_rate_threshold        = 5.0
+latency_threshold_ms        = 5000
 
 # ====================================
 # Resource Labels
@@ -113,14 +113,13 @@ labels = {
 # PostgreSQL - Staging Settings
 # ====================================
 
-postgres_db_password      = "staging_db_password_from_secret_manager"
-postgres_db_name          = "devnexus"
-postgres_db_user          = "devnexus"
-postgres_version          = "15"
-postgres_machine_type     = "e2-micro"  # Cost-effective
-postgres_disk_size_gb     = 50          # More space for testing
-postgres_subnet_cidr      = "10.8.0.0/24"
-vpc_connector_cidr        = "10.8.1.0/28"
-allow_ssh_from_cidrs      = ["0.0.0.0/0"]  # Restrict in production!
-backup_retention_days     = 14
+postgres_db_name           = "devnexus"
+postgres_db_user           = "devnexus"
+postgres_version           = "15"
+postgres_machine_type      = "e2-micro" # Cost-effective
+postgres_disk_size_gb      = 50         # More space for testing
+postgres_subnet_cidr       = "10.8.0.0/24"
+vpc_connector_cidr         = "10.8.1.0/28"
+allow_ssh_from_cidrs       = ["0.0.0.0/0"] # Restrict in production!
+backup_retention_days      = 14
 enable_postgres_monitoring = true

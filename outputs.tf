@@ -83,8 +83,8 @@ output "is_public" {
 output "test_commands" {
   description = "Commands to test the deployed service"
   value = {
-    health_check = "curl ${google_cloud_run_v2_service.pattern_discovery_agent.uri}/health"
-    agentcard    = "curl ${google_cloud_run_v2_service.pattern_discovery_agent.uri}/.well-known/agent.json | jq"
+    health_check          = "curl ${google_cloud_run_v2_service.pattern_discovery_agent.uri}/health"
+    agentcard             = "curl ${google_cloud_run_v2_service.pattern_discovery_agent.uri}/.well-known/agent.json | jq"
     authenticated_request = var.allow_unauthenticated ? "Not needed (service is public)" : "curl -H \"Authorization: Bearer $(gcloud auth print-identity-token)\" ${google_cloud_run_v2_service.pattern_discovery_agent.uri}/health"
   }
 }
@@ -100,15 +100,15 @@ output "external_agent_config" {
       service_account = google_service_account.log_attacker[0].email
       dev_nexus_url   = google_cloud_run_v2_service.pattern_discovery_agent.uri
       env_vars = {
-        DEV_NEXUS_URL                 = google_cloud_run_v2_service.pattern_discovery_agent.uri
-        DEVNEXUS_INTEGRATION_ENABLED  = "true"
+        DEV_NEXUS_URL                = google_cloud_run_v2_service.pattern_discovery_agent.uri
+        DEVNEXUS_INTEGRATION_ENABLED = "true"
       }
     }
     orchestrator = {
       service_account = google_service_account.orchestrator[0].email
       dev_nexus_url   = google_cloud_run_v2_service.pattern_discovery_agent.uri
       env_vars = {
-        DEV_NEXUS_URL   = google_cloud_run_v2_service.pattern_discovery_agent.uri
+        DEV_NEXUS_URL = google_cloud_run_v2_service.pattern_discovery_agent.uri
       }
     }
   } : null
@@ -171,7 +171,7 @@ output "postgres_ssh_command" {
 
 output "cloud_build_trigger_id" {
   description = "ID of the Cloud Build trigger for GitHub integration"
-  value      = var.create_github_trigger ? google_cloudbuild_trigger.dev_nexus_github[0].trigger_id : null
+  value       = var.create_github_trigger ? google_cloudbuild_trigger.dev_nexus_github[0].trigger_id : null
 }
 
 output "cloud_build_trigger_webhook" {
