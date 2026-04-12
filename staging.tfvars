@@ -44,7 +44,7 @@ langsmith_endpoint          = "https://api.smith.langchain.com"
 # Knowledge Base
 # ====================================
 
-knowledge_base_repo = "patelmm79/dev-nexus"
+knowledge_base_repo = "DarojaAI/dev-nexus"
 
 # ====================================
 # Cloud Run - Staging Settings

@@ -11,19 +11,19 @@ variable "github_actions_enabled" {
 }
 
 variable "github_repo" {
-  description = "GitHub repository in 'owner/repo' format (e.g., 'patelmm79/dev-nexus') — used when github_actions_scope is 'repository'"
+  description = "GitHub repository in 'owner/repo' format (e.g., 'DarojaAI/dev-nexus') — used when github_actions_scope is 'repository'"
   type        = string
-  default     = "patelmm79/dev-nexus"
+  default     = "DarojaAI/dev-nexus"
 }
 
 variable "github_owner" {
-  description = "GitHub repository owner (e.g., 'patelmm79')"
+  description = "GitHub repository owner (e.g., 'DarojaAI')"
   type        = string
-  default     = "patelmm79"
+  default     = "DarojaAI"
 }
 
 variable "github_org" {
-  description = "GitHub organization slug (e.g., 'patelmm79') — used when github_actions_scope is 'organization'. All repos in this org will be able to authenticate."
+  description = "GitHub organization slug (e.g., 'DarojaAI') — used when github_actions_scope is 'organization'. All repos in this org will be able to authenticate."
   type        = string
   default     = ""
 }

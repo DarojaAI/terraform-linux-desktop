@@ -25,8 +25,8 @@ region     = "us-central1"
 
 github_actions_enabled   = true
 github_actions_scope    = "repository"  # "repository" (single repo) or "organization" (all org repos)
-github_repo             = "patelmm79/dev-nexus"
-github_org              = "patelmm79"   # required when github_actions_scope = "organization"
+github_repo             = "DarojaAI/dev-nexus"
+github_org              = "DarojaAI"   # required when github_actions_scope = "organization"
 
 # ====================================
 # Secrets (Use Secret Manager in production!)
@@ -54,9 +54,9 @@ langsmith_endpoint          = "https://api.smith.langchain.com"
 # Knowledge Base
 # ====================================
 
-knowledge_base_repo = "patelmm79/dev-nexus"
-github_repo        = "patelmm79/dev-nexus"
-github_owner       = "patelmm79"
+knowledge_base_repo = "DarojaAI/dev-nexus"
+github_repo        = "DarojaAI/dev-nexus"
+github_owner       = "DarojaAI"
 
 # ====================================
 # Cloud Run - Production Settings

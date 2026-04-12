@@ -7,8 +7,8 @@
 # Usage:
 #   In your environment's .tfvars file, set:
 #     github_actions_enabled = true
-#     github_repo = "patelmm79/dev-nexus"
-#     github_org  = "patelmm79"       # required when github_actions_scope = "organization"
+#     github_repo = "DarojaAI/dev-nexus"
+#     github_org  = "DarojaAI"       # required when github_actions_scope = "organization"
 #     github_actions_scope = "repository"   # or "organization"
 #
 #   Then run:
@@ -61,8 +61,8 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   project                            = var.project_id
   workload_identity_pool_id          = google_iam_workload_identity_pool.github.workload_identity_pool_id
   workload_identity_pool_provider_id = "github-provider"
-  display_name                      = "patelmm79/dev-nexus"
-  description                       = "GitHub Actions provider for patelmm79/dev-nexus"
+  display_name                      = "DarojaAI/dev-nexus"
+  description                       = "GitHub Actions provider for DarojaAI/dev-nexus"
 
   attribute_mapping = {
     "google.subject"           = "assertion.sub"
@@ -141,7 +141,7 @@ output "github_secrets_instructions" {
   ============================================
 
   Add these TWO secrets to your GitHub repository:
-  https://github.com/patelmm79/dev-nexus/settings/secrets/actions
+  https://github.com/DarojaAI/dev-nexus/settings/secrets/actions
 
   1. WIF_PROVIDER =
      ${google_iam_workload_identity_pool.github.name}/providers/github-provider

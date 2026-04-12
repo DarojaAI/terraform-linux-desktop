@@ -601,7 +601,7 @@ labels = {
 
 ## Issues
 
-**GitHub:** https://github.com/patelmm79/dev-nexus/issues
+**GitHub:** https://github.com/DarojaAI/dev-nexus/issues
 
 ---
 

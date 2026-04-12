@@ -640,7 +640,7 @@ resource "google_cloudbuild_trigger" "dev_nexus_github" {
   disabled    = false
 
   github {
-    owner = "patelmm79"
+    owner = "DarojaAI"
     name  = "dev-nexus"
     push {
       branch = "^main$"
