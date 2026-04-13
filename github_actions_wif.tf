@@ -55,14 +55,18 @@ resource "google_iam_workload_identity_pool" "github" {
 
 # =============================================================================
 # Workload Identity Pool Provider
+#
+# NOTE: The prior provider "github-provider" is soft-deleted in GCP (expired
+# 2026-05-12) and cannot be recreated. This new provider "github-provider-daroja"
+# replaces it with org-wide scope for DarojaAI.
 # =============================================================================
 
 resource "google_iam_workload_identity_pool_provider" "github" {
   project                            = var.project_id
   workload_identity_pool_id          = google_iam_workload_identity_pool.github.workload_identity_pool_id
-  workload_identity_pool_provider_id = "github-provider"
-  display_name                       = "DarojaAI/dev-nexus"
-  description                        = "GitHub Actions provider for DarojaAI/dev-nexus"
+  workload_identity_pool_provider_id = "github-provider-daroja"
+  display_name                       = "DarojaAI org"
+  description                        = "GitHub Actions provider for DarojaAI organization"
 
   attribute_mapping = {
     "google.subject"             = "assertion.sub"
@@ -115,7 +119,7 @@ output "wif_provider" {
 output "wif_provider_full" {
   description = "Full WIF Provider resource name (including the provider itself) — for reference"
   value       = google_iam_workload_identity_pool_provider.github.name
-  # Output format: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+  # Output format: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/providers/github-provider-daroja
 }
 
 output "wif_service_account" {
@@ -144,7 +148,7 @@ output "github_secrets_instructions" {
   https://github.com/DarojaAI/dev-nexus/settings/secrets/actions
 
   1. WIF_PROVIDER =
-     ${google_iam_workload_identity_pool.github.name}/providers/github-provider
+     ${google_iam_workload_identity_pool.github.name}/providers/github-provider-daroja
 
   2. WIF_SERVICE_ACCOUNT =
      ${google_service_account.github_actions_deploy.email}

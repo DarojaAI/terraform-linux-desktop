@@ -24,7 +24,7 @@ region     = "us-central1"
 # ====================================
 
 github_actions_enabled = true
-github_actions_scope   = "repository" # "repository" (single repo) or "organization" (all org repos)
+github_actions_scope   = "organization" # "repository" (single repo) or "organization" (all org repos)
 github_repo            = "DarojaAI/dev-nexus"
 github_org             = "DarojaAI" # required when github_actions_scope = "organization"
 
