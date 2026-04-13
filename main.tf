@@ -59,10 +59,7 @@ resource "google_secret_manager_secret" "github_token" {
   depends_on = [google_project_service.secretmanager]
 }
 
-resource "google_secret_manager_secret_version" "github_token" {
-  secret      = google_secret_manager_secret.github_token.id
-  secret_data = var.github_token
-}
+# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 # GitHub OAuth secrets
 resource "google_secret_manager_secret" "github_client_id" {
@@ -77,10 +74,7 @@ resource "google_secret_manager_secret" "github_client_id" {
   depends_on = [google_project_service.secretmanager]
 }
 
-resource "google_secret_manager_secret_version" "github_client_id" {
-  secret      = google_secret_manager_secret.github_client_id.id
-  secret_data = var.github_client_id
-}
+# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret" "github_client_secret" {
   secret_id = "${var.secret_prefix}_GITHUB_CLIENT_SECRET"
@@ -94,10 +88,7 @@ resource "google_secret_manager_secret" "github_client_secret" {
   depends_on = [google_project_service.secretmanager]
 }
 
-resource "google_secret_manager_secret_version" "github_client_secret" {
-  secret      = google_secret_manager_secret.github_client_secret.id
-  secret_data = var.github_client_secret
-}
+# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 # JWT secret for token signing
 resource "google_secret_manager_secret" "jwt_secret" {
@@ -112,10 +103,7 @@ resource "google_secret_manager_secret" "jwt_secret" {
   depends_on = [google_project_service.secretmanager]
 }
 
-resource "google_secret_manager_secret_version" "jwt_secret" {
-  secret      = google_secret_manager_secret.jwt_secret.id
-  secret_data = var.jwt_secret
-}
+# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret" "anthropic_api_key" {
   secret_id = "${var.secret_prefix}_ANTHROPIC_API_KEY"
@@ -129,10 +117,7 @@ resource "google_secret_manager_secret" "anthropic_api_key" {
   depends_on = [google_project_service.secretmanager]
 }
 
-resource "google_secret_manager_secret_version" "anthropic_api_key" {
-  secret      = google_secret_manager_secret.anthropic_api_key.id
-  secret_data = var.anthropic_api_key
-}
+# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 # LangSmith API Key (optional - only created if API key is provided)
 resource "google_secret_manager_secret" "langsmith_api_key" {
@@ -148,11 +133,7 @@ resource "google_secret_manager_secret" "langsmith_api_key" {
   depends_on = [google_project_service.secretmanager]
 }
 
-resource "google_secret_manager_secret_version" "langsmith_api_key" {
-  count       = 1
-  secret      = google_secret_manager_secret.langsmith_api_key[0].id
-  secret_data = var.langsmith_api_key != "" ? var.langsmith_api_key : ""
-}
+# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 # External A2A Agent Tokens (always created with count=1 for state compatibility)
 resource "google_secret_manager_secret" "pattern_miner_token" {
@@ -168,11 +149,7 @@ resource "google_secret_manager_secret" "pattern_miner_token" {
   depends_on = [google_project_service.secretmanager]
 }
 
-resource "google_secret_manager_secret_version" "pattern_miner_token" {
-  count       = 1
-  secret      = google_secret_manager_secret.pattern_miner_token[0].id
-  secret_data = var.pattern_miner_token != "" ? var.pattern_miner_token : ""
-}
+# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret" "action_agent_token" {
   count     = 1
@@ -187,11 +164,7 @@ resource "google_secret_manager_secret" "action_agent_token" {
   depends_on = [google_project_service.secretmanager]
 }
 
-resource "google_secret_manager_secret_version" "action_agent_token" {
-  count       = 1
-  secret      = google_secret_manager_secret.action_agent_token[0].id
-  secret_data = var.action_agent_token != "" ? var.action_agent_token : ""
-}
+# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_iam_member" "action_agent_token_access" {
   count     = 1
@@ -213,11 +186,7 @@ resource "google_secret_manager_secret" "orchestrator_token" {
   depends_on = [google_project_service.secretmanager]
 }
 
-resource "google_secret_manager_secret_version" "orchestrator_token" {
-  count       = 1
-  secret      = google_secret_manager_secret.orchestrator_token[0].id
-  secret_data = var.orchestrator_token != "" ? var.orchestrator_token : ""
-}
+# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 # Grant Cloud Run service account access to secrets
 resource "google_secret_manager_secret_iam_member" "github_token_access" {

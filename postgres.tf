@@ -348,12 +348,12 @@ resource "google_secret_manager_secret" "postgres_password" {
   labels = var.labels
 
   depends_on = [google_project_service.secretmanager]
+    lifecycle {
+      prevent_destroy = true
+    }
 }
 
-resource "google_secret_manager_secret_version" "postgres_password" {
-  secret      = google_secret_manager_secret.postgres_password.id
-  secret_data = var.postgres_db_password
-}
+# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret" "postgres_user" {
   secret_id = "${var.secret_prefix}_POSTGRES_USER"
@@ -365,12 +365,12 @@ resource "google_secret_manager_secret" "postgres_user" {
   labels = var.labels
 
   depends_on = [google_project_service.secretmanager]
+    lifecycle {
+      prevent_destroy = true
+    }
 }
 
-resource "google_secret_manager_secret_version" "postgres_user" {
-  secret      = google_secret_manager_secret.postgres_user.id
-  secret_data = var.postgres_db_user
-}
+# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret" "postgres_db" {
   secret_id = "${var.secret_prefix}_POSTGRES_DB"
@@ -382,12 +382,12 @@ resource "google_secret_manager_secret" "postgres_db" {
   labels = var.labels
 
   depends_on = [google_project_service.secretmanager]
+    lifecycle {
+      prevent_destroy = true
+    }
 }
 
-resource "google_secret_manager_secret_version" "postgres_db" {
-  secret      = google_secret_manager_secret.postgres_db.id
-  secret_data = var.postgres_db_name
-}
+# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 # Store PostgreSQL host IP in Secret Manager
 # This ensures Cloud Run always gets the correct internal IP,
@@ -402,12 +402,12 @@ resource "google_secret_manager_secret" "postgres_host" {
   labels = var.labels
 
   depends_on = [google_project_service.secretmanager]
+    lifecycle {
+      prevent_destroy = true
+    }
 }
 
-resource "google_secret_manager_secret_version" "postgres_host" {
-  secret      = google_secret_manager_secret.postgres_host.id
-  secret_data = google_compute_address.postgres_ip.address
-}
+# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_iam_member" "postgres_password_access" {
   secret_id = google_secret_manager_secret.postgres_password.id

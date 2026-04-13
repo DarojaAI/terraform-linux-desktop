@@ -97,15 +97,6 @@ resource "google_iam_workload_identity_pool_provider" "github" {
 # =============================================================================
 
 # =============================================================================
-# Grant Deploy SA Project Editor (dev/staging only — use narrower roles in prod)
-# =============================================================================
-
-resource "google_project_iam_member" "deploy_editor" {
-  project = var.project_id
-  role    = "roles/editor"
-  member  = "serviceAccount:${google_service_account.github_actions_deploy.email}"
-}
-
 # =============================================================================
 # Outputs — Use These for GitHub Secrets
 # =============================================================================
