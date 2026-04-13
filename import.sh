@@ -77,38 +77,54 @@ import_bucket() {
 
 # Run imports
 echo "--- WIF Resources ---"
-import_wif "google_service_account.github_actions_deploy[0]" \
-  "projects/globalbiting-dev/serviceAccounts/github-actions-deploy@globalbiting-dev.iam.gserviceaccount.com"
-import_wif "google_iam_workload_identity_pool.github[0]" \
-  "projects/globalbiting-dev/locations/global/workloadIdentityPools/github-pool"
-import_wif "google_iam_workload_identity_pool_provider.github[0]" \
-  "projects/globalbiting-dev/locations/global/workloadIdentityPools/github-pool/providers/github-provider"
+# NOTE: github-provider (old) is soft-deleted in GCP. Import the new provider instead.
+# Also: only SA uses count=0 (implicit) in terraform config; pool and provider don't.
+import_wif "google_service_account.github_actions_deploy" \
+  "projects/${PROJECT_ID}/serviceAccounts/github-actions-deploy@${PROJECT_ID}.iam.gserviceaccount.com"
+import_wif "google_iam_workload_identity_pool.github" \
+  "projects/${PROJECT_ID}/locations/global/workloadIdentityPools/github-pool"
+import_wif "google_iam_workload_identity_pool_provider.github" \
+  "projects/${PROJECT_ID}/locations/global/workloadIdentityPools/github-pool/providers/github-provider-daroja"
 
-echo "--- Secret Manager Secrets ---"
-import_secret "google_secret_manager_secret.github_client_id[0]" \
-  "${SECRET_PREFIX}_GITHUB_CLIENT_ID"
-import_secret "google_secret_manager_secret.github_client_secret[0]" \
-  "${SECRET_PREFIX}_GITHUB_CLIENT_SECRET"
-import_secret "google_secret_manager_secret.jwt_secret[0]" \
-  "${SECRET_PREFIX}_JWT_SECRET"
+echo "--- Secret Manager Secrets (indexed — use [0]) ---"
+# These secrets use count = 1 in terraform config, so their addresses have [0]
 import_secret "google_secret_manager_secret.langsmith_api_key[0]" \
   "${SECRET_PREFIX}_LANGSMITH_API_KEY"
-import_secret "google_secret_manager_secret.postgres_user[0]" \
+import_secret "google_secret_manager_secret.pattern_miner_token[0]" \
+  "${SECRET_PREFIX}_PATTERN_MINER_TOKEN"
+import_secret "google_secret_manager_secret.action_agent_token[0]" \
+  "${SECRET_PREFIX}_ACTION_AGENT_TOKEN"
+import_secret "google_secret_manager_secret.orchestrator_token[0]" \
+  "${SECRET_PREFIX}_ORCHESTRATOR_TOKEN"
+
+echo "--- Secret Manager Secrets (non-indexed) ---"
+# These secrets have no count in terraform config — no [0]
+import_secret "google_secret_manager_secret.github_client_id" \
+  "${SECRET_PREFIX}_GITHUB_CLIENT_ID"
+import_secret "google_secret_manager_secret.github_client_secret" \
+  "${SECRET_PREFIX}_GITHUB_CLIENT_SECRET"
+import_secret "google_secret_manager_secret.jwt_secret" \
+  "${SECRET_PREFIX}_JWT_SECRET"
+import_secret "google_secret_manager_secret.anthropic_api_key" \
+  "${SECRET_PREFIX}_ANTHROPIC_API_KEY"
+import_secret "google_secret_manager_secret.postgres_password" \
+  "${SECRET_PREFIX}_POSTGRES_PASSWORD"
+import_secret "google_secret_manager_secret.postgres_user" \
   "${SECRET_PREFIX}_POSTGRES_USER"
-import_secret "google_secret_manager_secret.postgres_db[0]" \
+import_secret "google_secret_manager_secret.postgres_db" \
   "${SECRET_PREFIX}_POSTGRES_DB"
-import_secret "google_secret_manager_secret.postgres_host[0]" \
+import_secret "google_secret_manager_secret.postgres_host" \
   "${SECRET_PREFIX}_POSTGRES_HOST"
 
 echo "--- Compute Resources ---"
 import_compute "google_compute_firewall.allow_egress_all[0]" \
-  "projects/globalbiting-dev/global/firewalls/dev-nexus-allow-egress-all"
+  "projects/${PROJECT_ID}/global/firewalls/dev-nexus-allow-egress-all"
 import_compute "google_compute_route.default_internet_route[0]" \
-  "projects/globalbiting-dev/global/routes/dev-nexus-default-internet-route"
+  "projects/${PROJECT_ID}/global/routes/dev-nexus-default-internet-route"
 import_compute "google_compute_disk.postgres_data[0]" \
-  "projects/globalbiting-dev/zones/${ZONE}/disks/dev-nexus-postgres-data"
+  "projects/${PROJECT_ID}/zones/${ZONE}/disks/dev-nexus-postgres-data"
 import_compute "google_compute_address.postgres_external_ip[0]" \
-  "projects/globalbiting-dev/regions/${REGION}/addresses/dev-nexus-postgres-external-ip"
+  "projects/${PROJECT_ID}/regions/${REGION}/addresses/dev-nexus-postgres-external-ip"
 
 echo "--- Storage Buckets ---"
 # NOTE: If bucket was created with a different prefix, adjust the bucket name here
