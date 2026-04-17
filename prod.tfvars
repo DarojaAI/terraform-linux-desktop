@@ -82,6 +82,7 @@ allowed_origin_regex = "https://dev-nexus-frontend\\.vercel\\.app"
 allowed_service_accounts         = []
 create_external_service_accounts = false
 allow_ssh_from_cidrs             = [] # No SSH in prod
+allow_postgres_from_cidrs        = ["100.38.44.126/32"] # Local machine for testing
 
 # ====================================
 # Integration (Optional)

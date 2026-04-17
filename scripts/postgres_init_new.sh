@@ -223,8 +223,24 @@ if [ -f "$PG_CONF" ]; then
     fi
 fi
 
+# Update pg_hba.conf to allow external connections
+PG_HBA="/etc/postgresql/$POSTGRES_VERSION/main/pg_hba.conf"
+if [ -f "$PG_HBA" ]; then
+    # Add entries for external access if not already present
+    if ! grep -q "^host all all 0.0.0.0/0 md5" "$PG_HBA"; then
+        echo "host all all 0.0.0.0/0 md5" >> "$PG_HBA"
+    fi
+    if ! grep -q "^host all all ::0/0 md5" "$PG_HBA"; then
+        echo "host all all ::0/0 md5" >> "$PG_HBA"
+    fi
+fi
+
 # Start PostgreSQL using systemctl (simpler)
 systemctl start postgresql
+
+# Restart to apply pg_hba.conf changes (if started from previous config)
+sleep 2
+systemctl restart postgresql
 
 # Wait for PostgreSQL to be ready
 echo "Waiting for PostgreSQL to be ready..."
