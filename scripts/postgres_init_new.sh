@@ -205,59 +205,26 @@ else
 fi
 
 # ============================================
-# Step 4: Configure PostgreSQL Data Directory
+# Step 4: Configure PostgreSQL (use default data directory)
 # ============================================
 echo ""
-echo "===== Step 4: Configure PostgreSQL Data Directory ====="
+echo "===== Step 4: Configure PostgreSQL ====="
 
-# Stop PostgreSQL if running
-systemctl stop postgresql
+# Use default data directory - skip custom mount for now
+PGDATA_DIR="/var/lib/postgresql/$POSTGRES_VERSION/main"
+echo "Using default data directory: $PGDATA_DIR"
 
-# Check if we need to move data directory to persistent disk
-if [ -d "$MOUNT_POINT" ]; then
-    echo "Setting up data directory on persistent disk..."
-
-    # Check if data directory already exists on mount
-    if [ -d "$MOUNT_POINT/$POSTGRES_VERSION/main" ]; then
-        echo "Data directory already exists on mount, using it"
-        PGDATA_DIR="$MOUNT_POINT/$POSTGRES_VERSION/main"
-    else
-        echo "Moving PostgreSQL data to mount..."
-
-        # Move existing data if any
-        if [ -d "/var/lib/postgresql/$POSTGRES_VERSION/main" ]; then
-            cp -a /var/lib/postgresql/$POSTGRES_VERSION/main/* "$MOUNT_POINT/" || true
-        fi
-
-        # Ensure proper ownership
-        chown -R postgres:postgres "$MOUNT_POINT"
-
-        # Update PostgreSQL config
-        PGDATA_DIR="$MOUNT_POINT/$POSTGRES_VERSION/main"
-    fi
-else
-    echo "No mount found, using default data directory"
-    PGDATA_DIR="/var/lib/postgresql/$POSTGRES_VERSION/main"
-fi
-
-echo "PGDATA_DIR: $PGDATA_DIR"
-
-# Update postgresql.conf to use custom data directory
+# Update postgresql.conf to listen on all addresses
 PG_CONF="/etc/postgresql/$POSTGRES_VERSION/main/postgresql.conf"
 if [ -f "$PG_CONF" ]; then
     # Enable listening on all addresses
     if ! grep -q "^listen_addresses" "$PG_CONF"; then
         echo "listen_addresses = '*'" >> "$PG_CONF"
     fi
-
-    # Set data directory
-    if ! grep -q "^data_directory" "$PG_CONF"; then
-        echo "data_directory = '$PGDATA_DIR'" >> "$PG_CONF"
-    fi
 fi
 
-# Start PostgreSQL as postgres user
-sudo -u postgres /usr/lib/postgresql/$POSTGRES_VERSION/bin/pg_ctl -D "$PGDATA_DIR" -l "$PG_LOG_DIR/startup.log" start -o "-c config_file=$PG_CONF"
+# Start PostgreSQL using systemctl (simpler)
+systemctl start postgresql
 
 # Wait for PostgreSQL to be ready
 echo "Waiting for PostgreSQL to be ready..."
