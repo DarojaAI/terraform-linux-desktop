@@ -36,6 +36,15 @@ echo "  DATA_DISK_DEVICE: /dev/$DATA_DISK_DEVICE"
 echo "  BACKUP_BUCKET: $BACKUP_BUCKET"
 echo ""
 
+# Validate required variables
+if [ -z "$DB_PASSWORD" ]; then
+    echo "ERROR: DB_PASSWORD is empty! This will cause authentication failures."
+    echo "Please ensure TF_VAR_postgres_db_password is set in terraform-apply.yml"
+    exit 1
+fi
+
+echo "Password validation: OK (length: ${#DB_PASSWORD})"
+
 # ============================================
 # Step 0: Disable Firewall
 # ============================================
@@ -393,11 +402,30 @@ for i in $(seq 1 $MAX_PG_WAIT); do
     sleep 2
 done
 
-# Create database and user
+# Create database and user (idempotent - handles existing user)
 echo "Creating database and user..."
 sudo -u postgres psql <<PSQL_EOF
-CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';
-CREATE DATABASE $DB_NAME OWNER $DB_USER;
+-- Create user if not exists, or update password if exists
+DO \$\$
+BEGIN
+   IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '$DB_USER') THEN
+      EXECUTE 'CREATE USER $DB_USER WITH PASSWORD '''$DB_PASSWORD'''';
+   ELSE
+      EXECUTE 'ALTER USER $DB_USER WITH PASSWORD '''$DB_PASSWORD'''';
+   END IF;
+END
+\$\$;
+
+-- Create database if not exists
+DO \$\$
+BEGIN
+   IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '$DB_NAME') THEN
+      EXECUTE 'CREATE DATABASE $DB_NAME OWNER $DB_USER';
+   END IF;
+END
+\$\$;
+
+-- Grant privileges
 GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
 PSQL_EOF
 
