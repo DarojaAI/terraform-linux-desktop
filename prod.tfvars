@@ -121,7 +121,7 @@ labels = {
 # ====================================
 
 postgres_db_name           = "pattern_discovery"
-postgres_db_user           = "devnexus"
+postgres_db_user           = "app_user"
 postgres_version           = "15"
 postgres_machine_type      = "e2-medium" # Production tier
 postgres_disk_size_gb      = 100
