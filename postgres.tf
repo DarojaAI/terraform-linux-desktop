@@ -289,6 +289,9 @@ resource "google_compute_instance" "postgres" {
     postgres_version  = var.postgres_version
     enable_monitoring = var.enable_postgres_monitoring
     data_disk_device  = "sdb"
+    # Internal variables - hardcoded for the VM
+    RETRY_DELAY       = "2"
+    MAX_RETRIES       = "30"
   })
 
   service_account {
