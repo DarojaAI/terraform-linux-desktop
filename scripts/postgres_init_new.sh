@@ -43,7 +43,7 @@ if [ -z "$DB_PASSWORD" ]; then
     exit 1
 fi
 
-echo "Password validation: OK (length: ${#DB_PASSWORD})"
+echo "Password validation: OK (length: $${#DB_PASSWORD})"
 
 # ============================================
 # Step 0: Disable Firewall
@@ -80,9 +80,9 @@ MAX_RETRIES=30
 RETRY_DELAY=2
 
 while [ ! -b "$DISK_PATH" ] && [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    echo "Disk $DISK_PATH not found yet (attempt $((RETRY_COUNT+1))/$MAX_RETRIES). Waiting $${RETRY_DELAY}s..."
+    echo "Disk $DISK_PATH not found yet (attempt $(expr $RETRY_COUNT + 1)/$MAX_RETRIES). Waiting $${RETRY_DELAY}s..."
     sleep $RETRY_DELAY
-    RETRY_COUNT=$((RETRY_COUNT+1))
+    RETRY_COUNT=$(expr $RETRY_COUNT + 1)
 done
 
 if [ ! -b "$DISK_PATH" ]; then
