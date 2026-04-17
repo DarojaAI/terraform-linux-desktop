@@ -230,6 +230,11 @@ resource "google_compute_address" "postgres_external_ip" {
   region       = var.region
 }
 
+# Read password directly from Secret Manager
+data "google_secret_manager_secret_version" "postgres_password" {
+  secret = google_secret_manager_secret.postgres_password.id
+}
+
 # Startup script for PostgreSQL with pgvector
 resource "google_compute_instance" "postgres" {
   name         = "dev-nexus-postgres"
@@ -274,7 +279,7 @@ resource "google_compute_instance" "postgres" {
   metadata_startup_script = templatefile("${path.module}/scripts/postgres_init_new.sh", {
     db_name           = var.postgres_db_name
     db_user           = var.postgres_db_user
-    db_password       = var.postgres_db_password
+    db_password       = data.google_secret_manager_secret_version.postgres_password.secret_data
     backup_bucket     = google_storage_bucket.postgres_backups.name
     BACKUP_BUCKET     = google_storage_bucket.postgres_backups.name
     DB_NAME           = var.postgres_db_name
