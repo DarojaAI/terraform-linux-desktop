@@ -12,6 +12,9 @@
 environment   = "prod"
 secret_prefix = "dev-nexus-prod"
 
+# Frontend URL for OAuth callback
+frontend_url = "https://dev-nexus-frontend.patelmm79.workers.dev"
+
 # ====================================
 # GCP Configuration
 # ====================================
@@ -74,9 +77,6 @@ timeout_seconds      = 300
 
 allow_unauthenticated  = true
 require_auth_for_write = true
-
-# CORS - restrict to production frontend only
-allowed_origin_regex = "https://dev-nexus-frontend\\.vercel\\.app"
 
 # Service accounts
 allowed_service_accounts         = []

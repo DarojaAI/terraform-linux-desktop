@@ -318,12 +318,6 @@ variable "orchestrator_token" {
   default     = ""
 }
 
-variable "allowed_origin_regex" {
-  description = "A regex to match allowed origins for CORS."
-  type        = string
-  default     = "https://.*-milan-patels-projects-187b35de\\.vercel\\.app"
-}
-
 # ====================================
 # Monitoring Configuration
 # ====================================

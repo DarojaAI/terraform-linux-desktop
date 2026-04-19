@@ -254,7 +254,6 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
   # Ensure all dependencies are ready before creating service
   depends_on = [
-    google_vpc_access_connector.postgres_connector,
     google_compute_instance.postgres,
     google_secret_manager_secret_iam_member.github_token_access,
     google_secret_manager_secret_iam_member.anthropic_key_access,
@@ -275,11 +274,10 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
     timeout = "${var.timeout_seconds}s"
 
-    # VPC connector for PostgreSQL access
-    # Must use full resource path for Cloud Run v2 API
+    # Use VPC connector for PostgreSQL access
     vpc_access {
-      connector = "projects/${var.project_id}/locations/${var.region}/connectors/${google_vpc_access_connector.postgres_connector.name}"
-      egress    = "PRIVATE_RANGES_ONLY"
+      connector = google_vpc_access_connector.postgres_connector.id
+      egress    = "ALL_TRAFFIC"
     }
 
     containers {
@@ -355,7 +353,8 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
         value_source {
           secret_key_ref {
             secret  = google_secret_manager_secret.postgres_host.secret_id
-            version = "latest"
+            # Use dynamic version from data source - triggers redeploy when secret updates
+            version = data.google_secret_manager_secret_version.postgres_host.version
           }
         }
       }
@@ -408,11 +407,6 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
       env {
         name  = "POSTGRES_SSL_NO_VERIFY"
         value = "false"
-      }
-
-      env {
-        name  = "ALLOWED_ORIGIN_REGEX"
-        value = var.allowed_origin_regex
       }
 
       # GitHub OAuth configuration
@@ -634,3 +628,9 @@ data "google_project" "project" {
 }
 
 data "google_compute_default_service_account" "default" {}
+
+# Data source to read secret version for trigger
+# This triggers Cloud Run redeploy when secret version changes
+data "google_secret_manager_secret_version" "postgres_host" {
+  secret = google_secret_manager_secret.postgres_host.id
+}
