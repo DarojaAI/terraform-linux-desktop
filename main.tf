@@ -47,7 +47,7 @@ resource "google_project_service" "artifactregistry" {
 }
 
 # Artifact Registry repository for Docker images
-resource "google_artifacts_repository" "dev_nexus" {
+resource "google_artifact_registry_repository" "dev_nexus" {
   location      = var.region
   repository_id = "dev-nexus"
   format        = "DOCKER"
@@ -56,9 +56,9 @@ resource "google_artifacts_repository" "dev_nexus" {
 }
 
 # Grant GitHub Actions SA permission to push to Artifact Registry
-resource "google_artifacts_repository_iam_member" "github_actions_writer" {
+resource "google_artifact_registry_repository_iam_member" "github_actions_writer" {
   location      = var.region
-  repository    = google_artifacts_repository.dev_nexus.name
+  repository    = google_artifact_registry_repository.dev_nexus.name
   role          = "roles/artifactregistry.writer"
   member        = "serviceAccount:github-actions-deploy@${var.project_id}.iam.gserviceaccount.com"
 }
