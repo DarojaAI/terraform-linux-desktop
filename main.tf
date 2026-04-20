@@ -46,6 +46,23 @@ resource "google_project_service" "artifactregistry" {
   disable_on_destroy = false
 }
 
+# Artifact Registry repository for Docker images
+resource "google_artifacts_repository" "dev_nexus" {
+  location      = var.region
+  repository_id = "dev-nexus"
+  format        = "DOCKER"
+
+  depends_on = [google_project_service.artifactregistry]
+}
+
+# Grant GitHub Actions SA permission to push to Artifact Registry
+resource "google_artifacts_repository_iam_member" "github_actions_writer" {
+  location      = var.region
+  repository    = google_artifacts_repository.dev_nexus.name
+  role          = "roles/artifactregistry.writer"
+  member        = "serviceAccount:github-actions-deploy@${var.project_id}.iam.gserviceaccount.com"
+}
+
 # Create secrets in Secret Manager (prefixed per environment to prevent collisions)
 resource "google_secret_manager_secret" "github_token" {
   secret_id = "${var.secret_prefix}_GITHUB_TOKEN"
@@ -281,7 +298,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
     }
 
     containers {
-      image = "gcr.io/${var.project_id}/pattern-discovery-agent:latest"
+      image = "us-central1-docker.pkg.dev/${var.project_id}/dev-nexus/pattern-discovery-agent:latest"
 
       ports {
         container_port = 8080
