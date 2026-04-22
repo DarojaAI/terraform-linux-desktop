@@ -68,7 +68,7 @@ resource "google_compute_firewall" "allow_postgres" {
   # 4. External sources (if configured via var.allow_postgres_from_cidrs)
   source_ranges = distinct(concat(
     [var.postgres_subnet_cidr, var.vpc_connector_cidr],
-    [for cidr in jsondecode(data.http.github_actions_ips.response_body).actions : format("%s.0.0/16", join(".", slice(split(".", cidr), 0, 2)))],
+    [for cidr in jsondecode(data.http.github_actions_ips.response_body).actions : format("%s.0.0/16", split(".", split("/", cidr)[0])[0])],
     var.allow_postgres_from_cidrs
   ))
   target_tags = ["postgres-server"]
