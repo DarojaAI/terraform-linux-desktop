@@ -108,15 +108,13 @@ variable "jwt_secret" {
 }
 
 variable "frontend_url" {
-  description = "Frontend URL for OAuth callback redirects (e.g., https://your-app.vercel.app)"
+  description = "Frontend URL for OAuth callback redirects"
   type        = string
-  default     = "https://dev-nexus-frontend.patelmm79.workers.dev/"
 }
 
 variable "backend_url" {
-  description = "Backend URL for OAuth callback (e.g., https://pattern-discovery-agent-123.uc.a.run.app)"
+  description = "Backend URL for OAuth callback"
   type        = string
-  default     = "https://pattern-discovery-agent-75l7mntama-uc.a.run.app"
 }
 
 variable "jwt_expire_hours" {
