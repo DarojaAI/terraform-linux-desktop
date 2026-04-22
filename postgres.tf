@@ -1,6 +1,15 @@
 # PostgreSQL Database VM with pgvector for Pattern Discovery Agent
 # Deployed on GCP Compute Engine e2-micro (FREE tier eligible)
 
+# Fetch GitHub Actions runner IP ranges for firewall allowlisting
+# Used to allow DBT schema validation step in CI/CD workflows to connect to PostgreSQL
+data "http" "github_actions_ips" {
+  url = "https://api.github.com/meta"
+  request_headers = {
+    Accept = "application/vnd.github+json"
+  }
+}
+
 # Enable required APIs
 resource "google_project_service" "compute" {
   service            = "compute.googleapis.com"
@@ -55,11 +64,13 @@ resource "google_compute_firewall" "allow_postgres" {
   # Allow connections from:
   # 1. PostgreSQL subnet (VPC-internal)
   # 2. VPC connector CIDR (Cloud Run -> PostgreSQL)
-  # 3. External sources (if configured via var.allow_postgres_from_cidrs)
-  source_ranges = concat(
+  # 3. GitHub Actions runners (for CI/CD DBT validation step)
+  # 4. External sources (if configured via var.allow_postgres_from_cidrs)
+  source_ranges = distinct(concat(
     [var.postgres_subnet_cidr, var.vpc_connector_cidr],
+    [for cidr in jsondecode(data.http.github_actions_ips.response_body).actions : split("/", cidr)[0]],
     var.allow_postgres_from_cidrs
-  )
+  ))
   target_tags = ["postgres-server"]
 }
 
