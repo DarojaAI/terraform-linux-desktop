@@ -291,6 +291,11 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
     timeout = "${var.timeout_seconds}s"
 
+    # Disable startup probe so Cloud Run doesn't kill slow-starting containers.
+    # Without this, Cloud Run applies a Default startup probe (240s period, 1 failure)
+    # that kills containers that take >240s to start, blocking traffic shifts.
+    startup_probe_type = "DISABLED"
+
     # Use VPC connector for PostgreSQL access
     vpc_access {
       connector = google_vpc_access_connector.postgres_connector.id
