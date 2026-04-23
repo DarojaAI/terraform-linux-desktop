@@ -46,7 +46,9 @@ module "postgres" {
   # Region
   region = var.region
 
-  # GitHub Actions SA — grants storage.objectViewer on backup bucket for terraform plan reads.
-  # Value comes from WIF setup script SA creation: github-actions-deploy@<project>.iam.gserviceaccount.com
-  github_actions_backup_reader_sa = "github-actions-deploy@${var.project_id}.iam.gserviceaccount.com"
+  # NOTE: github_actions_backup_reader_sa is NOT set here.
+  # The backup bucket IAM is handled manually as a one-time bootstrap step.
+  # This avoids a circular dependency: terraform plan needs to read bucket IAM,
+  # but the bucket's IAM can't be granted until terraform apply creates the bucket.
+  # See gcp-postgres-terraform/docs/CI-CD-SETUP.md for the manual grant step.
 }
