@@ -269,8 +269,8 @@ resource "google_compute_instance" "postgres" {
     db_name           = var.postgres_db_name
     db_user           = var.postgres_db_user
     db_password       = data.google_secret_manager_secret_version.postgres_password.secret_data
-    backup_bucket     = module.postgres.google_storage_bucket.postgres_backups.name
-    BACKUP_BUCKET     = module.postgres.google_storage_bucket.postgres_backups.name
+    backup_bucket     = "dev-nexus-${var.environment}-postgres-backups"
+    BACKUP_BUCKET     = "dev-nexus-${var.environment}-postgres-backups"
     DB_NAME           = var.postgres_db_name
     DB_USER           = var.postgres_db_user
     BACKUP_DATE       = "placeholder"
@@ -305,7 +305,6 @@ resource "google_compute_instance" "postgres" {
   depends_on = [
     google_project_service.compute,
     google_compute_subnetwork.postgres_subnet,
-    module.postgres.google_storage_bucket.postgres_backups,
     google_compute_disk.postgres_data
   ]
 }
