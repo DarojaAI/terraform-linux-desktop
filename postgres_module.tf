@@ -45,4 +45,8 @@ module "postgres" {
 
   # Region
   region = var.region
+
+  # GitHub Actions SA — grants storage.objectViewer on backup bucket for terraform plan reads.
+  # Value comes from WIF setup script SA creation: github-actions-deploy@<project>.iam.gserviceaccount.com
+  github_actions_backup_reader_sa = "github-actions-deploy@${var.project_id}.iam.gserviceaccount.com"
 }
