@@ -115,54 +115,54 @@ output "external_agent_config" {
 }
 
 # ====================================
-# PostgreSQL Outputs
+# PostgreSQL Outputs (from gcp-postgres-terraform module)
 # ====================================
 
 output "postgres_internal_ip" {
   description = "Internal IP address of PostgreSQL VM"
-  value       = google_compute_address.postgres_ip.address
+  value       = module.postgres.internal_ip
 }
 
 output "postgres_instance_name" {
   description = "Name of the PostgreSQL VM instance"
-  value       = google_compute_instance.postgres.name
+  value       = module.postgres.instance_name
 }
 
 output "postgres_zone" {
   description = "Zone where PostgreSQL VM is deployed"
-  value       = google_compute_instance.postgres.zone
+  value       = module.postgres.zone
 }
 
 output "postgres_external_ip" {
   description = "External (ephemeral) IP address of PostgreSQL VM for external access"
-  value       = try(google_compute_instance.postgres.network_interface[0].access_config[0].nat_ip, null)
+  value       = module.postgres.external_ip
 }
 
 output "postgres_connection_string_internal" {
   description = "PostgreSQL connection string for Cloud Run (internal VPC)"
-  value       = "postgresql://${var.postgres_db_user}:****@${google_compute_address.postgres_ip.address}:5432/${var.postgres_db_name}"
+  value       = module.postgres.connection_string_internal
   sensitive   = false
 }
 
 output "postgres_connection_string_external" {
-  description = "PostgreSQL connection string for external access (if IP assigned and allow_postgres_from_cidrs configured)"
-  value       = try(google_compute_instance.postgres.network_interface[0].access_config[0].nat_ip, null) != null ? "postgresql://${var.postgres_db_user}:****@${google_compute_instance.postgres.network_interface[0].access_config[0].nat_ip}:5432/${var.postgres_db_name}" : "External IP not yet assigned - wait a few minutes and re-run 'terraform output'"
+  description = "PostgreSQL connection string for external access"
+  value       = module.postgres.connection_string_external
   sensitive   = false
 }
 
 output "postgres_backup_bucket" {
   description = "Cloud Storage bucket for PostgreSQL backups"
-  value       = google_storage_bucket.postgres_backups.name
+  value       = module.postgres.backup_bucket
 }
 
 output "vpc_connector_name" {
   description = "Name of the VPC connector for Cloud Run to PostgreSQL"
-  value       = google_vpc_access_connector.postgres_connector.name
+  value       = module.postgres.vpc_connector_name
 }
 
 output "postgres_ssh_command" {
   description = "Command to SSH into PostgreSQL VM"
-  value       = "gcloud compute ssh ${google_compute_instance.postgres.name} --zone=${google_compute_instance.postgres.zone} --project=${var.project_id}"
+  value       = "gcloud compute ssh ${module.postgres.instance_name} --zone=${module.postgres.zone} --project=${var.project_id}"
 }
 
 # ====================================
@@ -191,8 +191,8 @@ output "deployment_summary" {
     memory            = var.memory
     knowledge_base    = var.knowledge_base_repo
     database          = "PostgreSQL ${var.postgres_version} with pgvector"
-    database_location = "${google_compute_instance.postgres.zone} (${google_compute_address.postgres_ip.address})"
-    backup_bucket     = google_storage_bucket.postgres_backups.name
+    database_location = "${module.postgres.zone} (${module.postgres.internal_ip})"
+    backup_bucket     = module.postgres.backup_bucket
     cloud_build_url   = "https://console.cloud.google.com/cloud-build/triggers?project=${var.project_id}"
   }
 }
