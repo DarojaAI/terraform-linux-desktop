@@ -152,7 +152,7 @@ output "postgres_connection_string_external" {
 
 output "postgres_backup_bucket" {
   description = "Cloud Storage bucket for PostgreSQL backups"
-  value       = module.postgres.backup_bucket
+  value       = module.postgres.backup_bucket_name
 }
 
 output "vpc_connector_name" {
@@ -192,7 +192,7 @@ output "deployment_summary" {
     knowledge_base    = var.knowledge_base_repo
     database          = "PostgreSQL ${var.postgres_version} with pgvector"
     database_location = "${module.postgres.zone} (${module.postgres.internal_ip})"
-    backup_bucket     = module.postgres.backup_bucket
+    backup_bucket     = module.postgres.backup_bucket_name
     cloud_build_url   = "https://console.cloud.google.com/cloud-build/triggers?project=${var.project_id}"
   }
 }

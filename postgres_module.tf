@@ -24,7 +24,7 @@
 # - Cloud NAT, VPC connector, backups, monitoring
 module "postgres" {
   # Use the version with GitHub Actions firewall fix
-  source = "github.com/DarojaAI/gcp-postgres-terraform//terraform?ref=v1.11"
+  source = "github.com/DarojaAI/gcp-postgres-terraform//terraform?ref=main"
 
   # Required inputs
   project_id          = var.project_id
