@@ -181,39 +181,6 @@ resource "google_vpc_access_connector" "postgres_connector" {
 # Cloud Storage for Backups
 # ============================================
 
-# Create bucket for PostgreSQL backups
-# NOTE: force_destroy = true allows terraform destroy to delete bucket with all objects
-# Set to false if you need to preserve backups after destroy
-resource "google_storage_bucket" "postgres_backups" {
-  name          = "${var.secret_prefix}-postgres-backups"
-  location      = var.region
-  force_destroy = true
-
-  versioning {
-    enabled = true
-  }
-
-  lifecycle_rule {
-    condition {
-      age = var.backup_retention_days
-    }
-    action {
-      type = "Delete"
-    }
-  }
-
-  lifecycle_rule {
-    condition {
-      num_newer_versions = 3
-    }
-    action {
-      type = "Delete"
-    }
-  }
-
-  uniform_bucket_level_access = true
-}
-
 # ============================================
 # PostgreSQL Data Disk (Persistent)
 # ============================================
@@ -302,8 +269,8 @@ resource "google_compute_instance" "postgres" {
     db_name           = var.postgres_db_name
     db_user           = var.postgres_db_user
     db_password       = data.google_secret_manager_secret_version.postgres_password.secret_data
-    backup_bucket     = google_storage_bucket.postgres_backups.name
-    BACKUP_BUCKET     = google_storage_bucket.postgres_backups.name
+    backup_bucket     = module.postgres.google_storage_bucket.postgres_backups.name
+    BACKUP_BUCKET     = module.postgres.google_storage_bucket.postgres_backups.name
     DB_NAME           = var.postgres_db_name
     DB_USER           = var.postgres_db_user
     BACKUP_DATE       = "placeholder"
@@ -338,7 +305,7 @@ resource "google_compute_instance" "postgres" {
   depends_on = [
     google_project_service.compute,
     google_compute_subnetwork.postgres_subnet,
-    google_storage_bucket.postgres_backups,
+    module.postgres.google_storage_bucket.postgres_backups,
     google_compute_disk.postgres_data
   ]
 }
@@ -351,20 +318,6 @@ resource "google_service_account" "postgres_vm" {
   account_id   = "dev-nexus-postgres-vm"
   display_name = "Dev Nexus PostgreSQL VM"
   description  = "Service account for PostgreSQL VM with backup access"
-}
-
-# Grant access to write backups to Cloud Storage
-resource "google_storage_bucket_iam_member" "postgres_backup_writer" {
-  bucket = google_storage_bucket.postgres_backups.name
-  role   = "roles/storage.objectCreator"
-  member = "serviceAccount:${google_service_account.postgres_vm.email}"
-}
-
-# Grant access to read backups (for restore)
-resource "google_storage_bucket_iam_member" "postgres_backup_reader" {
-  bucket = google_storage_bucket.postgres_backups.name
-  role   = "roles/storage.objectViewer"
-  member = "serviceAccount:${google_service_account.postgres_vm.email}"
 }
 
 # Grant Secret Manager access for database credentials (prefixed per environment)
