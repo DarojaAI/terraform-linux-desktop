@@ -10,6 +10,16 @@ data "http" "github_actions_ips" {
   }
 }
 
+# Extract and filter IPv4-only CIDRs from GitHub Actions IPs
+# IPv4 CIDRs look like "13.64.0.0/11" - we aggregate to /16 blocks
+# IPv6 addresses (containing ':') are filtered out as GCP firewall doesn't accept them
+locals {
+  github_actions_ipv4 = [for cidr in jsondecode(data.http.github_actions_ips.response_body).actions :
+    length(regexall(":", cidr)) > 0 ? "" : format("%s.0.0/16", join(".", slice(split(".", cidr), 0, 2)))
+  ]
+  github_actions_cidrs = distinct(local.github_actions_ipv4)
+}
+
 # Enable required APIs
 resource "google_project_service" "compute" {
   service            = "compute.googleapis.com"
