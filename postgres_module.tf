@@ -45,11 +45,4 @@ module "postgres" {
 
   # Region
   region = var.region
-
-  # GitHub Actions integration (enables firewall IP filtering)
-  # NOTE: WIF is disabled here — managed via one-time script in dev-nexus, not in the module.
-  # The module should not own WIF resources (repo-specific concern).
-  github_actions_enabled = false
-  github_repo            = var.github_repo
-  github_owner          = var.github_owner
 }
