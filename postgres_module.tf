@@ -47,7 +47,7 @@ module "postgres" {
   region = var.region
 
   # GitHub Actions integration (enables firewall IP filtering)
-  github_actions_enabled = var.github_actions_enabled
+  github_actions_enabled = false  # Dev-nexus manages WIF inline in github_actions_wif.tf
   github_repo            = var.github_repo
   github_owner          = var.github_owner
 }
