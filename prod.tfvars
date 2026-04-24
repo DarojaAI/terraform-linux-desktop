@@ -42,7 +42,7 @@ github_client_id     = ""                                     # Set from Secret 
 github_client_secret = ""                                     # Set from Secret Manager
 anthropic_api_key    = ""                                     # Set from Secret Manager
 jwt_secret           = "prod-jwt-secret-placeholder-32chars!" # Set from Secret Manager (min 32 chars)
-postgres_db_password = ""                                     # Set from Secret Manager
+# postgres_db_password is provided via TF_VAR_postgres_db_password environment variable
 
 # ====================================
 # LangSmith Configuration (LLM Observability)

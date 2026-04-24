@@ -35,7 +35,7 @@ github_client_id     = "dev_github_client_id_placeholder"     # Replace with act
 github_client_secret = "dev_github_client_secret_placeholder" # Replace with actual secret
 anthropic_api_key    = "sk-ant-dev-placeholder"               # Replace with actual key from Secret Manager
 jwt_secret           = "dev-jwt-secret-placeholder-32chars!"  # Replace with actual secret in prod
-postgres_db_password = "dev-db-password-placeholder"          # Replace with actual password from Secret Manager
+# postgres_db_password is provided via TF_VAR_postgres_db_password environment variable
 
 # ====================================
 # LangSmith Configuration (LLM Observability)
