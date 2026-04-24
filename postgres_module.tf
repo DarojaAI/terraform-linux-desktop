@@ -46,6 +46,9 @@ module "postgres" {
   # Region
   region = var.region
 
+  # Disable monitoring dashboard (causes IAM permission errors in CI/CD)
+  enable_monitoring = false
+
   # NOTE: github_actions_backup_reader_sa is NOT set here.
   # The backup bucket IAM is handled manually as a one-time bootstrap step.
   # This avoids a circular dependency: terraform plan needs to read bucket IAM,
