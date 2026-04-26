@@ -18,10 +18,13 @@
 
 # Import shared PostgreSQL module from gcp-postgres-terraform
 # This module handles:
-# - VPC network creation (or uses existing via vpc_name/subnet_name)
 # - PostgreSQL VM on Compute Engine with pgvector
 # - Firewall rules with GitHub Actions IP filtering built-in
-# - Cloud NAT, VPC connector, backups, monitoring
+# - Backups, monitoring, and secret management
+#
+# NOTE: VPC infrastructure (network, subnets, connectors) is managed by
+# the vpc-infra module. We reference those outputs here to ensure consistent
+# networking setup.
 module "postgres" {
   # Use the version with GitHub Actions firewall fix
   source = "github.com/DarojaAI/gcp-postgres-terraform//terraform?ref=main"
@@ -33,9 +36,9 @@ module "postgres" {
   repo_prefix         = "dev-nexus"
   environment         = var.environment
 
-  # Use existing VPC from current setup to avoid recreation
-  vpc_name    = "dev-nexus-network"
-  subnet_name = "dev-nexus-subnet"
+  # Use existing VPC from vpc-infra module output
+  vpc_name    = module.vpc.vpc_name
+  subnet_name = module.vpc.subnet_names[0]
 
   # PostgreSQL configuration
   postgres_version = var.postgres_version
@@ -53,6 +56,9 @@ module "postgres" {
 
   # Disable monitoring dashboard (causes IAM permission errors in CI/CD)
   enable_monitoring = false
+
+  # Depend on VPC module so it's created first
+  depends_on = [module.vpc]
 
   # NOTE: github_actions_backup_reader_sa is NOT set here.
   # The backup bucket IAM is handled manually as a one-time bootstrap step.
