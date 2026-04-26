@@ -96,7 +96,7 @@ resource "google_secret_manager_secret" "postgres_host" {
 # Version for postgres_host (internal IP from module)
 resource "google_secret_manager_secret_version" "postgres_host" {
   secret      = google_secret_manager_secret.postgres_host.id
-  secret_data = module.postgres.postgres_instance_internal_ip
+  secret_data = module.postgres.internal_ip
 }
 
 # ============================================
@@ -106,7 +106,7 @@ resource "google_secret_manager_secret_version" "postgres_host" {
 resource "google_secret_manager_secret_iam_member" "postgres_password_access" {
   secret_id = google_secret_manager_secret.postgres_password.id
   role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${module.postgres.postgres_vm_service_account_email}"
+  member    = "serviceAccount:${module.postgres.service_account_email}"
 }
 
 # Grant Cloud Run (default service account) access to read postgres credentials
