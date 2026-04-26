@@ -110,6 +110,7 @@ variable "jwt_secret" {
 variable "frontend_url" {
   description = "Frontend URL for OAuth callback redirects"
   type        = string
+  default     = ""
 }
 
 variable "backend_url" {
