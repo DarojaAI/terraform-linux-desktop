@@ -13,10 +13,14 @@ environment   = "prod"
 secret_prefix = "dev-nexus-prod"
 
 # Frontend URL for OAuth callback
-frontend_url = "https://dev-nexus-frontend.patelmm79.workers.dev"
+# Set via GitHub Actions env variable PROD_FRONTEND_URL (enforced by InfrastructureContract)
+# DO NOT hardcode here — terraform receives it via TF_VAR_frontend_url from the contract validator
+# frontend_url = "https://dev-nexus-frontend.patelmm79.workers.dev"
 
 # Backend Cloud Run URL for OAuth callback
-backend_url = "https://pattern-discovery-agent-75l7mntama-uc.a.run.app"
+# Set via GitHub Actions env variable PROD_BACKEND_URL (enforced by InfrastructureContract)
+# DO NOT hardcode here — terraform receives it via TF_VAR_backend_url from the contract validator
+# backend_url = "https://pattern-discovery-agent-uc.a.run.app"
 
 # ====================================
 # GCP Configuration
