@@ -16,7 +16,7 @@ secret_prefix = "dev-nexus-prod"
 frontend_url = "https://dev-nexus-frontend.patelmm79.workers.dev"
 
 # Backend Cloud Run URL for OAuth callback
-backend_url = "https://dev-nexus-backend.patelmm79.workers.dev"
+backend_url = "https://pattern-discovery-agent-75l7mntama-uc.a.run.app"
 
 # ====================================
 # GCP Configuration
