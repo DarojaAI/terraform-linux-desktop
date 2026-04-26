@@ -42,8 +42,8 @@ github_client_id     = ""                                     # Set from Secret 
 github_client_secret = ""                                     # Set from Secret Manager
 anthropic_api_key    = ""                                     # Set from Secret Manager
 jwt_secret           = "prod-jwt-secret-placeholder-32chars!" # Set from Secret Manager (min 32 chars)
-# RESET: Generated new password on 2026-04-26 00:23 UTC
-postgres_db_password = "@OA0V2DfVZbbA@O7zO$tK4EERwmAC^*!"
+# RESET: Generated new password on 2026-04-26 03:22 UTC
+postgres_db_password = "wBIYv1NWL4udEoSZSB7P"
 
 # ====================================
 # LangSmith Configuration (LLM Observability)
