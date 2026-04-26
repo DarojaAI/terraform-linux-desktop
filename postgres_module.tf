@@ -46,6 +46,11 @@ module "postgres" {
   # Region
   region = var.region
 
+  # VPC Connector configuration for Cloud Run
+  vpc_connector_cidr       = var.vpc_connector_cidr
+  vpc_connector_min_instances = 2
+  vpc_connector_max_instances = 10
+
   # Disable monitoring dashboard (causes IAM permission errors in CI/CD)
   enable_monitoring = false
 
