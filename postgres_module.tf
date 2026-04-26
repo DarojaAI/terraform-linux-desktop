@@ -55,3 +55,35 @@ module "postgres" {
   # but the bucket's IAM can't be granted until terraform apply creates the bucket.
   # See gcp-postgres-terraform/docs/CI-CD-SETUP.md for the manual grant step.
 }
+# Orphaned monitoring resources (stuck in state, cannot be removed)
+# These are defined here to prevent terraform from trying to destroy them
+# They are not managed by this configuration; they exist only in state
+resource "google_monitoring_dashboard" "postgres" {
+  provider      = google
+  count         = 0  # Don't actually create/manage these
+  dashboard_json = ""
+}
+
+resource "google_monitoring_alert_policy" "postgres_disk_usage" {
+  provider = google
+  count    = 0
+}
+
+resource "google_monitoring_alert_policy" "postgres_cpu_high" {
+  provider = google
+  count    = 0
+}
+
+# Legacy service enablement (also orphaned)
+resource "google_project_service" "compute" {
+  provider = google
+  count    = 0
+  service  = ""
+}
+
+resource "google_service_account" "postgres_vm" {
+  provider     = google
+  count        = 0
+  account_id   = ""
+  display_name = ""
+}
