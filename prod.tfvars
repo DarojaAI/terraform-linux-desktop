@@ -15,6 +15,9 @@ secret_prefix = "dev-nexus-prod"
 # Frontend URL for OAuth callback
 frontend_url = "https://dev-nexus-frontend.patelmm79.workers.dev"
 
+# Backend Cloud Run URL for OAuth callback
+backend_url = "https://dev-nexus-backend.patelmm79.workers.dev"
+
 # ====================================
 # GCP Configuration
 # ====================================
