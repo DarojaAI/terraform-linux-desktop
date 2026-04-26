@@ -99,14 +99,6 @@ resource "google_secret_manager_secret_version" "postgres_host" {
   secret_data = module.postgres.postgres_instance_internal_ip
 }
 
-# Data source to read postgres_host
-data "google_secret_manager_secret_version" "postgres_host" {
-  secret = google_secret_manager_secret.postgres_host.id
-  depends_on = [
-    google_secret_manager_secret_version.postgres_host
-  ]
-}
-
 # ============================================
 # Secret IAM Bindings
 # ============================================
