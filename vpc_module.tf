@@ -18,10 +18,10 @@ module "vpc" {
   # VPC naming with environment suffix
   vpc_name = "dev-nexus-network-${var.environment}"
 
-  # Subnets
+  # Subnets (names are appended to vpc_name, so no environment suffix here)
   subnets = [
     {
-      name = "dev-nexus-subnet-${var.environment}"
+      name = "subnet"
       cidr = "10.8.0.0/24"
     }
   ]
