@@ -9,7 +9,7 @@
 # =============================================================================
 
 module "vpc" {
-  source = "github.com/DarojaAI/vpc-infra//terraform?ref=v1.0.2"
+  source = "github.com/DarojaAI/vpc-infra//terraform?ref=v1.0.3"
 
   project_id  = var.project_id
   region      = var.region

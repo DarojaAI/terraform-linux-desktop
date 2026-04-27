@@ -30,11 +30,11 @@ module "postgres" {
   source = "github.com/DarojaAI/gcp-postgres-terraform//terraform?ref=main"
 
   # Required inputs
-  project_id          = var.project_id
+  project_id           = var.project_id
   postgres_db_password = var.postgres_db_password
   instance_name        = "dev-nexus-pg"
-  repo_prefix         = "dev-nexus"
-  environment         = var.environment
+  repo_prefix          = "dev-nexus"
+  environment          = var.environment
 
   # Use existing VPC from vpc-infra module output
   vpc_name    = module.vpc.vpc_name
@@ -44,13 +44,13 @@ module "postgres" {
   postgres_version = var.postgres_version
   postgres_db_name = "pattern_discovery"
   postgres_db_user = "app_user"
-  machine_type    = var.postgres_machine_type
+  machine_type     = var.postgres_machine_type
 
   # Region
   region = var.region
 
   # VPC Connector configuration for Cloud Run
-  vpc_connector_cidr       = var.vpc_connector_cidr
+  vpc_connector_cidr          = var.vpc_connector_cidr
   vpc_connector_min_instances = 2
   vpc_connector_max_instances = 10
 

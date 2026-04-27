@@ -57,10 +57,10 @@ resource "google_artifact_registry_repository" "dev_nexus" {
 
 # Grant GitHub Actions SA permission to push to Artifact Registry
 resource "google_artifact_registry_repository_iam_member" "github_actions_writer" {
-  location      = var.region
-  repository    = google_artifact_registry_repository.dev_nexus.name
-  role          = "roles/artifactregistry.writer"
-  member        = "serviceAccount:github-actions-deploy@${var.project_id}.iam.gserviceaccount.com"
+  location   = var.region
+  repository = google_artifact_registry_repository.dev_nexus.name
+  role       = "roles/artifactregistry.writer"
+  member     = "serviceAccount:github-actions-deploy@${var.project_id}.iam.gserviceaccount.com"
 }
 
 # Create secrets in Secret Manager (prefixed per environment to prevent collisions)
@@ -292,14 +292,14 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
     timeout = "${var.timeout_seconds}s"
 
-    
+
     # Use VPC connector for PostgreSQL access
     vpc_access {
       connector = module.vpc.vpc_connector_name
       # Use PRIVATE_RANGES_ONLY so public internet traffic (GitHub OAuth) routes directly
       # from Cloud Run. "ALL_TRAFFIC" would break OAuth because the VPC connector's IP
       # range (10.10.2.0/28) isn't covered by Cloud NAT.
-      egress    = "PRIVATE_RANGES_ONLY"
+      egress = "PRIVATE_RANGES_ONLY"
     }
 
     containers {
@@ -374,7 +374,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
         name = "POSTGRES_HOST"
         value_source {
           secret_key_ref {
-            secret  = google_secret_manager_secret.postgres_host.secret_id
+            secret = google_secret_manager_secret.postgres_host.secret_id
             # Use dynamic version from data source - triggers redeploy when secret updates
             version = data.google_secret_manager_secret_version.postgres_host.version
           }

@@ -89,7 +89,7 @@ require_auth_for_write = true
 # Service accounts
 allowed_service_accounts         = []
 create_external_service_accounts = false
-allow_ssh_from_cidrs             = [] # No SSH in prod
+allow_ssh_from_cidrs             = []                   # No SSH in prod
 allow_postgres_from_cidrs        = ["100.38.44.126/32"] # Local machine for testing
 
 # ====================================
