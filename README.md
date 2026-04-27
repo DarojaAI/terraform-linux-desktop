@@ -588,8 +588,8 @@ labels = {
 - [TERRAFORM_STATE_MANAGEMENT.md](../docs/TERRAFORM_STATE_MANAGEMENT.md) - State backup and recovery
 
 ### Deployment
-- [DEPLOYMENT.md](../DEPLOYMENT.md) - Quick deployment guide (bash scripts alternative)
-- [DEPLOYMENT_READINESS.md](../DEPLOYMENT_READINESS.md) - Pre-deployment checklist
+- [DEPLOYMENT.md](../docs/DEPLOYMENT.md) - Quick deployment guide (bash scripts alternative)
+- [DEPLOYMENT_READINESS.md](../docs/status/DEPLOYMENT_READINESS.md) - Pre-deployment checklist
 
 ### Reference
 - [CLAUDE.md](../CLAUDE.md) - Developer guidelines (includes multi-environment section)
