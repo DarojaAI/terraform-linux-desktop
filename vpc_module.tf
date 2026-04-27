@@ -9,19 +9,19 @@
 # =============================================================================
 
 module "vpc" {
-  source = "github.com/DarojaAI/vpc-infra//terraform?ref=v1.0.1"
+  source = "github.com/DarojaAI/vpc-infra//terraform?ref=v1.0.2"
 
   project_id  = var.project_id
   region      = var.region
   environment = var.environment
 
-  # VPC naming
-  vpc_name = "dev-nexus-network"
+  # VPC naming with environment suffix
+  vpc_name = "dev-nexus-network-${var.environment}"
 
   # Subnets
   subnets = [
     {
-      name = "dev-nexus-subnet"
+      name = "dev-nexus-subnet-${var.environment}"
       cidr = "10.8.0.0/24"
     }
   ]
