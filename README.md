@@ -55,7 +55,7 @@ gcloud config set project YOUR_PROJECT_ID
 
 ## Quick Start
 
-> **⚠️ IMPORTANT:** This project uses **multi-environment Terraform** with unified initialization. Read [TERRAFORM_UNIFIED_INIT.md](../TERRAFORM_UNIFIED_INIT.md) for the recommended approach.
+> **⚠️ IMPORTANT:** This project uses **multi-environment Terraform** with unified initialization. Read [TERRAFORM_UNIFIED_INIT.md](../docs/TERRAFORM_UNIFIED_INIT.md) for the recommended approach.
 
 ### Step 1: Initialize Backend (One-time)
 
@@ -147,7 +147,7 @@ curl $SERVICE_URL/.well-known/agent.json | jq
 
 ## Environment Configurations
 
-For detailed environment-specific setup, see [MULTI_ENV_SETUP.md](../MULTI_ENV_SETUP.md).
+For detailed environment-specific setup, see [MULTI_ENV_SETUP.md](../docs/guides/MULTI_ENV_SETUP.md).
 
 ### Development Environment (dev.tfvars)
 
@@ -279,7 +279,7 @@ terraform destroy
 
 ## State Management
 
-> **Complete State Management Guide:** See [TERRAFORM_STATE_MANAGEMENT.md](../TERRAFORM_STATE_MANAGEMENT.md)
+> **Complete State Management Guide:** See [TERRAFORM_STATE_MANAGEMENT.md](../docs/TERRAFORM_STATE_MANAGEMENT.md)
 
 ### Unified Remote State (Recommended)
 
@@ -315,7 +315,7 @@ bash scripts/backup-terraform-state.sh prod
 bash scripts/recover-terraform-state.sh dev
 ```
 
-For detailed procedures, see [TERRAFORM_STATE_MANAGEMENT.md](../TERRAFORM_STATE_MANAGEMENT.md).
+For detailed procedures, see [TERRAFORM_STATE_MANAGEMENT.md](../docs/TERRAFORM_STATE_MANAGEMENT.md).
 
 ---
 
@@ -583,9 +583,9 @@ labels = {
 ## Documentation
 
 ### Multi-Environment Setup
-- [TERRAFORM_UNIFIED_INIT.md](../TERRAFORM_UNIFIED_INIT.md) - Unified initialization across projects
-- [MULTI_ENV_SETUP.md](../MULTI_ENV_SETUP.md) - Environment-specific configuration and deployment
-- [TERRAFORM_STATE_MANAGEMENT.md](../TERRAFORM_STATE_MANAGEMENT.md) - State backup and recovery
+- [TERRAFORM_UNIFIED_INIT.md](../docs/TERRAFORM_UNIFIED_INIT.md) - Unified initialization across projects
+- [MULTI_ENV_SETUP.md](../docs/guides/MULTI_ENV_SETUP.md) - Environment-specific configuration and deployment
+- [TERRAFORM_STATE_MANAGEMENT.md](../docs/TERRAFORM_STATE_MANAGEMENT.md) - State backup and recovery
 
 ### Deployment
 - [DEPLOYMENT.md](../DEPLOYMENT.md) - Quick deployment guide (bash scripts alternative)
