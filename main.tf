@@ -25,6 +25,11 @@ provider "google" {
   region  = var.region
 }
 
+# Local variable to capture VPC connector name explicitly
+locals {
+  vpc_connector_name = module.vpc.vpc_connector_name
+}
+
 # Enable required APIs
 resource "google_project_service" "run" {
   service            = "run.googleapis.com"
@@ -296,8 +301,9 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
     # Use VPC connector for PostgreSQL access
     # NOTE: The postgres module outputs null when using external VPC (vpc_name provided).
     # Instead, reference the VPC connector created by vpc-infra module.
+    # Using local variable ensures the value is properly captured.
     vpc_access {
-      connector = module.vpc.vpc_connector_name
+      connector = local.vpc_connector_name
       # Use PRIVATE_RANGES_ONLY so public internet traffic (GitHub OAuth) routes directly
       # from Cloud Run. "ALL_TRAFFIC" would break OAuth because the VPC connector's IP
       # range (10.8.1.0/28) isn't covered by Cloud NAT.
