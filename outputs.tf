@@ -204,3 +204,62 @@ output "deployment_summary" {
     cloud_build_url   = "https://console.cloud.google.com/cloud-build/triggers?project=${var.project_id}"
   }
 }
+# ====================================
+# dbt Outputs
+# ====================================
+
+output "dbt_service_url" {
+  description = "URL of dbt Cloud Run service"
+  value       = try(module.dbt.service_url, "dbt module disabled or not deployed")
+}
+
+output "dbt_scheduler_job_id" {
+  description = "Cloud Scheduler job ID for dbt runs"
+  value       = try(module.dbt.scheduler_job_id, null)
+}
+
+output "dbt_schedule" {
+  description = "Cron schedule for dbt transformations"
+  value       = var.dbt_schedule
+}
+
+output "dbt_service_account_email" {
+  description = "Service account email for dbt jobs"
+  value       = try(google_service_account.dbt_runner.email, null)
+}
+
+output "dbt_status_check" {
+  description = "How to check dbt job status"
+  value       = "gcloud scheduler jobs describe dev-nexus-${var.environment}-dbt --location ${var.region}"
+}
+
+# ====================================
+# VPC Egress Outputs (New Module)
+# ====================================
+
+output "vpc_egress_info" {
+  description = "VPC egress configuration summary"
+  value = {
+    vpc_name           = module.vpc_egress.vpc_name
+    vpc_id             = module.vpc_egress.vpc_id
+    subnet_cidr        = module.vpc_egress.subnet_cidrs[0]
+    nat_gateway_ip     = module.vpc_egress.nat_gateway_ip
+    router_name        = module.vpc_egress.router_id
+  }
+}
+
+# ====================================
+# PostgreSQL v2 Outputs (New Module)
+# ====================================
+
+output "postgres_v2_info" {
+  description = "PostgreSQL v2.0.0 configuration summary"
+  value = {
+    instance_name      = module.postgres.postgres_instance_name
+    internal_ip        = module.postgres.postgres_internal_ip
+    zone               = module.postgres.postgres_zone
+    database           = "pattern_discovery"
+    version            = "16"
+    pgvector_enabled   = true
+  }
+}

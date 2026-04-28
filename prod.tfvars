@@ -138,3 +138,18 @@ postgres_subnet_cidr       = "10.8.0.0/24"
 vpc_connector_cidr         = "10.8.1.0/28"
 backup_retention_days      = 30
 enable_postgres_monitoring = true
+
+# ====================================
+# dbt - Production Settings
+# ====================================
+
+dbt_enabled           = true
+dbt_schedule          = "0 2 * * *"        # 2 AM UTC daily
+dbt_timeout_seconds   = 3600               # 1 hour max
+failure_notification_channel = ""          # Set Slack webhook if needed
+
+# ====================================
+# Monitoring Alert Email
+# ====================================
+
+monitoring_alert_email = "team@example.com" # Update with real email

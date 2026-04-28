@@ -481,3 +481,38 @@ variable "enable_postgres_monitoring" {
   type        = bool
   default     = true
 }
+
+# ====================================
+# dbt Configuration
+# ====================================
+
+variable "dbt_schedule" {
+  description = "Cron expression for scheduled dbt runs (UTC). Default: 2 AM daily (0 2 * * *)"
+  type        = string
+  default     = "0 2 * * *"
+}
+
+variable "dbt_enabled" {
+  description = "Enable dbt module deployment and scheduling"
+  type        = bool
+  default     = true
+}
+
+variable "dbt_timeout_seconds" {
+  description = "Maximum execution time for dbt jobs in seconds"
+  type        = number
+  default     = 3600  # 1 hour
+}
+
+variable "failure_notification_channel" {
+  description = "Slack webhook URL or similar for dbt job failure notifications"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "postgres_machine_type" {
+  description = "Machine type for PostgreSQL VM"
+  type        = string
+  default     = "n1-standard-2"
+}
