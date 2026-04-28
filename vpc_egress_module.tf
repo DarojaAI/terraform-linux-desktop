@@ -6,9 +6,9 @@
 # =============================================================================
 
 module "vpc_egress" {
-  # Using fix/allow-postgres-default branch which sets allow_postgres=false by default
-  # This avoids firewall tag conflicts when used with gcp-postgres-terraform
-  source = "git::https://github.com/DarojaAI/gcp-vpc-egress-terraform.git//terraform?ref=fix/allow-postgres-default"
+  # Using master branch with allow_postgres=false to avoid firewall tag conflicts
+  # when used with gcp-postgres-terraform
+  source = "git::https://github.com/DarojaAI/gcp-vpc-egress-terraform.git//terraform"
 
   project_id  = var.project_id
   region      = var.region
@@ -24,8 +24,7 @@ module "vpc_egress" {
   # Firewall rules
   allow_ssh            = false # No SSH from internet (use IAP)
   allow_ssh_from_cidrs = []
-  # NOTE: allow_postgres defaults to false in fix/allow-postgres-default branch
-  # Postgres module creates its own firewall rules to avoid tag conflicts
+  allow_postgres       = false # Disable to avoid tag conflicts; postgres module creates its own rules
 
   # VPC Flow Logs
   enable_flow_logs   = true
