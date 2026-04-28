@@ -25,9 +25,12 @@ provider "google" {
   region  = var.region
 }
 
-# Local variable to capture VPC connector name explicitly
+# Local variable to build full VPC connector resource path for Cloud Run
 locals {
-  vpc_connector_name = module.vpc.vpc_connector_name
+  # Cloud Run requires full path: projects/{project}/locations/{location}/connectors/{connector}
+  # Use hardcoded naming pattern - module output delays are problematic
+  vpc_connector_name_computed = "${var.vpc_name}-connector"
+  vpc_connector_path = "projects/${var.project_id}/locations/${var.region}/connectors/${local.vpc_connector_name_computed}"
 }
 
 # Enable required APIs
@@ -303,10 +306,8 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
     # Instead, reference the VPC connector created by vpc-infra module.
     # Using local variable ensures the value is properly captured.
     vpc_access {
-      connector = local.vpc_connector_name
-      # Use PRIVATE_RANGES_ONLY so public internet traffic (GitHub OAuth) routes directly
-      # from Cloud Run. "ALL_TRAFFIC" would break OAuth because the VPC connector's IP
-      # range (10.8.1.0/28) isn't covered by Cloud NAT.
+      # Use full resource path format required by Cloud Run API
+      connector = local.vpc_connector_path
       egress = "PRIVATE_RANGES_ONLY"
     }
 
