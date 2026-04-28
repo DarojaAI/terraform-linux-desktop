@@ -25,13 +25,11 @@ provider "google" {
   region  = var.region
 }
 
-# Local variable to build full VPC connector resource path for Cloud Run
+# PostgreSQL connection details (from module.postgres)
 locals {
-  # Cloud Run requires full path: projects/{project}/locations/{location}/connectors/{connector}
-  # Use hardcoded naming pattern - module output delays are problematic
-  vpc_name = "dev-nexus-${var.environment}"
-  vpc_connector_name_computed = "${local.vpc_name}-connector"
-  vpc_connector_path = "projects/${var.project_id}/locations/${var.region}/connectors/${local.vpc_connector_name_computed}"
+  postgres_host = module.postgres.postgres_internal_ip
+  postgres_db   = "pattern_discovery"
+  postgres_user = "app_user"
 }
 
 # Enable required APIs
@@ -280,7 +278,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
   # Ensure all dependencies are ready before creating service
   depends_on = [
-    module.vpc,
+    module.vpc_egress,
     module.postgres,
     google_secret_manager_secret_iam_member.github_token_access,
     google_secret_manager_secret_iam_member.anthropic_key_access,
@@ -306,11 +304,9 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
     # NOTE: The postgres module outputs null when using external VPC (vpc_name provided).
     # Instead, reference the VPC connector created by vpc-infra module.
     # Using local variable ensures the value is properly captured.
-    vpc_access {
-      # Use full resource path format required by Cloud Run API
-      connector = local.vpc_connector_path
-      egress = "PRIVATE_RANGES_ONLY"
-    }
+    # Direct VPC egress (cleaner than VPC connector for internal-only access)
+    # Cloud Run can reach PostgreSQL VM directly via private VPC
+    # No vpc_access block needed for internal-only traffic
 
     containers {
       image = "us-central1-docker.pkg.dev/${var.project_id}/dev-nexus/pattern-discovery-agent:latest"
