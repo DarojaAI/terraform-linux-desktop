@@ -501,7 +501,7 @@ variable "dbt_enabled" {
 variable "dbt_timeout_seconds" {
   description = "Maximum execution time for dbt jobs in seconds"
   type        = number
-  default     = 3600  # 1 hour
+  default     = 3600 # 1 hour
 }
 
 variable "failure_notification_channel" {

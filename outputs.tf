@@ -163,7 +163,7 @@ output "vpc_connector_name" {
 output "vpc_module_outputs" {
   description = "DEBUG: VPC module outputs"
   value = {
-    vpc_name = try(module.vpc.vpc_name, "ERROR")
+    vpc_name           = try(module.vpc.vpc_name, "ERROR")
     vpc_connector_name = try(module.vpc.vpc_connector_name, "ERROR")
   }
 }
@@ -240,11 +240,11 @@ output "dbt_status_check" {
 output "vpc_egress_info" {
   description = "VPC egress configuration summary"
   value = {
-    vpc_name           = module.vpc_egress.vpc_name
-    vpc_id             = module.vpc_egress.vpc_id
-    subnet_cidr        = module.vpc_egress.subnet_cidrs[0]
-    nat_gateway_ip     = module.vpc_egress.nat_gateway_ip
-    router_name        = module.vpc_egress.router_id
+    vpc_name       = module.vpc_egress.vpc_name
+    vpc_id         = module.vpc_egress.vpc_id
+    subnet_cidr    = module.vpc_egress.subnet_cidrs[0]
+    nat_gateway_ip = module.vpc_egress.nat_gateway_ip
+    router_name    = module.vpc_egress.router_id
   }
 }
 
@@ -255,11 +255,11 @@ output "vpc_egress_info" {
 output "postgres_v2_info" {
   description = "PostgreSQL v2.0.0 configuration summary"
   value = {
-    instance_name      = module.postgres.postgres_instance_name
-    internal_ip        = module.postgres.postgres_internal_ip
-    zone               = module.postgres.postgres_zone
-    database           = "pattern_discovery"
-    version            = "16"
-    pgvector_enabled   = true
+    instance_name    = module.postgres.postgres_instance_name
+    internal_ip      = module.postgres.postgres_internal_ip
+    zone             = module.postgres.postgres_zone
+    database         = "pattern_discovery"
+    version          = "16"
+    pgvector_enabled = true
   }
 }
