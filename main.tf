@@ -29,7 +29,8 @@ provider "google" {
 locals {
   # Cloud Run requires full path: projects/{project}/locations/{location}/connectors/{connector}
   # Use hardcoded naming pattern - module output delays are problematic
-  vpc_connector_name_computed = "${var.vpc_name}-connector"
+  vpc_name = "dev-nexus-${var.environment}"
+  vpc_connector_name_computed = "${local.vpc_name}-connector"
   vpc_connector_path = "projects/${var.project_id}/locations/${var.region}/connectors/${local.vpc_connector_name_computed}"
 }
 
