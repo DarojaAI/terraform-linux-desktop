@@ -160,6 +160,14 @@ output "vpc_connector_name" {
   value       = module.vpc.vpc_connector_name
 }
 
+output "vpc_module_outputs" {
+  description = "DEBUG: VPC module outputs"
+  value = {
+    vpc_name = try(module.vpc.vpc_name, "ERROR")
+    vpc_connector_name = try(module.vpc.vpc_connector_name, "ERROR")
+  }
+}
+
 output "postgres_ssh_command" {
   description = "Command to SSH into PostgreSQL VM"
   value       = "gcloud compute ssh ${module.postgres.instance_name} --zone=${module.postgres.zone} --project=${var.project_id}"
