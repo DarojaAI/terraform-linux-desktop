@@ -157,7 +157,15 @@ output "postgres_backup_bucket" {
 
 output "vpc_connector_name" {
   description = "Name of the VPC connector for Cloud Run to PostgreSQL"
-  value       = module.postgres.vpc_connector_name
+  value       = module.vpc.vpc_connector_name
+}
+
+output "vpc_module_outputs" {
+  description = "DEBUG: VPC module outputs"
+  value = {
+    vpc_name = try(module.vpc.vpc_name, "ERROR")
+    vpc_connector_name = try(module.vpc.vpc_connector_name, "ERROR")
+  }
 }
 
 output "postgres_ssh_command" {

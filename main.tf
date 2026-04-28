@@ -25,6 +25,11 @@ provider "google" {
   region  = var.region
 }
 
+# Local variable to capture VPC connector name explicitly
+locals {
+  vpc_connector_name = module.vpc.vpc_connector_name
+}
+
 # Enable required APIs
 resource "google_project_service" "run" {
   service            = "run.googleapis.com"
@@ -294,11 +299,14 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
 
     # Use VPC connector for PostgreSQL access
+    # NOTE: The postgres module outputs null when using external VPC (vpc_name provided).
+    # Instead, reference the VPC connector created by vpc-infra module.
+    # Using local variable ensures the value is properly captured.
     vpc_access {
-      connector = module.postgres.vpc_connector_name
+      connector = local.vpc_connector_name
       # Use PRIVATE_RANGES_ONLY so public internet traffic (GitHub OAuth) routes directly
       # from Cloud Run. "ALL_TRAFFIC" would break OAuth because the VPC connector's IP
-      # range (10.10.2.0/28) isn't covered by Cloud NAT.
+      # range (10.8.1.0/28) isn't covered by Cloud NAT.
       egress = "PRIVATE_RANGES_ONLY"
     }
 
@@ -566,9 +574,9 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
     percent = 100
   }
 
-  lifecycle {
-    ignore_changes = [template[0].vpc_access[0].connector]
-  }
+  # NOTE: Removed ignore_changes for vpc_access.connector to allow updates
+  # when switching VPC connectors (e.g., from null to actual connector).
+  # This may cause service recreation if connector changes.
 }
 
 # Allow unauthenticated access (optional, for testing)
