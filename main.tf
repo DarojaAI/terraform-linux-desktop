@@ -294,11 +294,13 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
 
     # Use VPC connector for PostgreSQL access
+    # NOTE: The postgres module outputs null when using external VPC (vpc_name provided).
+    # Instead, reference the VPC connector created by vpc-infra module.
     vpc_access {
-      connector = module.postgres.vpc_connector_name
+      connector = module.vpc.vpc_connector_name
       # Use PRIVATE_RANGES_ONLY so public internet traffic (GitHub OAuth) routes directly
       # from Cloud Run. "ALL_TRAFFIC" would break OAuth because the VPC connector's IP
-      # range (10.10.2.0/28) isn't covered by Cloud NAT.
+      # range (10.8.1.0/28) isn't covered by Cloud NAT.
       egress = "PRIVATE_RANGES_ONLY"
     }
 

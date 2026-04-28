@@ -54,6 +54,13 @@ module "postgres" {
   vpc_connector_min_instances = 2
   vpc_connector_max_instances = 10
 
+  # NOTE: When using an external VPC (vpc_name provided), the postgres module
+  # skips creating its own VPC connector and outputs null for vpc_connector_name.
+  # Instead, we rely on the vpc-infra module to create the connector.
+  # This will require a future update to gcp-postgres-terraform to accept and
+  # output vpc_connector_name as an input parameter. For now, we'll use a local
+  # reference to module.vpc.vpc_connector_name in main.tf.
+
   # Disable monitoring dashboard (causes IAM permission errors in CI/CD)
   enable_monitoring = false
 
