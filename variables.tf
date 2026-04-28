@@ -511,8 +511,3 @@ variable "failure_notification_channel" {
   sensitive   = true
 }
 
-variable "postgres_machine_type" {
-  description = "Machine type for PostgreSQL VM"
-  type        = string
-  default     = "n1-standard-2"
-}

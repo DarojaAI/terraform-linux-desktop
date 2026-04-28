@@ -27,7 +27,7 @@ provider "google" {
 
 # PostgreSQL connection details (from module.postgres)
 locals {
-  postgres_host = module.postgres.postgres_internal_ip
+  postgres_host = module.postgres.internal_ip
   postgres_db   = "pattern_discovery"
   postgres_user = "app_user"
 }

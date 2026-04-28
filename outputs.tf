@@ -157,15 +157,12 @@ output "postgres_backup_bucket" {
 
 output "vpc_connector_name" {
   description = "Name of the VPC connector for Cloud Run to PostgreSQL"
-  value       = module.vpc.vpc_connector_name
+  value       = google_vpc_access_connector.cloud_run.name
 }
 
-output "vpc_module_outputs" {
-  description = "DEBUG: VPC module outputs"
-  value = {
-    vpc_name           = try(module.vpc.vpc_name, "ERROR")
-    vpc_connector_name = try(module.vpc.vpc_connector_name, "ERROR")
-  }
+output "vpc_connector_self_link" {
+  description = "Self link of the VPC connector"
+  value       = google_vpc_access_connector.cloud_run.self_link
 }
 
 output "postgres_ssh_command" {
@@ -205,46 +202,18 @@ output "deployment_summary" {
   }
 }
 # ====================================
-# dbt Outputs
-# ====================================
-
-output "dbt_service_url" {
-  description = "URL of dbt Cloud Run service"
-  value       = try(module.dbt.service_url, "dbt module disabled or not deployed")
-}
-
-output "dbt_scheduler_job_id" {
-  description = "Cloud Scheduler job ID for dbt runs"
-  value       = try(module.dbt.scheduler_job_id, null)
-}
-
-output "dbt_schedule" {
-  description = "Cron schedule for dbt transformations"
-  value       = var.dbt_schedule
-}
-
-output "dbt_service_account_email" {
-  description = "Service account email for dbt jobs"
-  value       = try(google_service_account.dbt_runner.email, null)
-}
-
-output "dbt_status_check" {
-  description = "How to check dbt job status"
-  value       = "gcloud scheduler jobs describe dev-nexus-${var.environment}-dbt --location ${var.region}"
-}
-
-# ====================================
 # VPC Egress Outputs (New Module)
 # ====================================
 
 output "vpc_egress_info" {
   description = "VPC egress configuration summary"
   value = {
-    vpc_name       = module.vpc_egress.vpc_name
-    vpc_id         = module.vpc_egress.vpc_id
-    subnet_cidr    = module.vpc_egress.subnet_cidrs[0]
-    nat_gateway_ip = module.vpc_egress.nat_gateway_ip
-    router_name    = module.vpc_egress.router_id
+    vpc_name    = module.vpc_egress.vpc_name
+    vpc_id      = module.vpc_egress.vpc_id
+    subnet_name = module.vpc_egress.subnet_name
+    subnet_cidr = module.vpc_egress.subnet_cidr
+    router_name = module.vpc_egress.router_name
+    nat_name    = module.vpc_egress.nat_name
   }
 }
 
@@ -253,13 +222,18 @@ output "vpc_egress_info" {
 # ====================================
 
 output "postgres_v2_info" {
-  description = "PostgreSQL v2.0.0 configuration summary"
+  description = "PostgreSQL v2 configuration summary"
   value = {
-    instance_name    = module.postgres.postgres_instance_name
-    internal_ip      = module.postgres.postgres_internal_ip
-    zone             = module.postgres.postgres_zone
+    instance_name    = module.postgres.instance_name
+    internal_ip      = module.postgres.internal_ip
+    zone             = module.postgres.zone
     database         = "pattern_discovery"
     version          = "16"
     pgvector_enabled = true
   }
 }
+
+# ====================================
+# VPC Egress Outputs (New Module)
+# ====================================
+
