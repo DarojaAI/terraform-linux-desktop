@@ -568,9 +568,9 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
     percent = 100
   }
 
-  lifecycle {
-    ignore_changes = [template[0].vpc_access[0].connector]
-  }
+  # NOTE: Removed ignore_changes for vpc_access.connector to allow updates
+  # when switching VPC connectors (e.g., from null to actual connector).
+  # This may cause service recreation if connector changes.
 }
 
 # Allow unauthenticated access (optional, for testing)
