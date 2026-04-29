@@ -383,6 +383,12 @@ variable "postgres_machine_type" {
   }
 }
 
+variable "dbt_schedule" {
+  description = "Cron schedule for dbt schema management jobs (Cloud Scheduler)"
+  type        = string
+  default     = "0 2 * * *" # Daily at 2 AM UTC
+}
+
 variable "postgres_disk_size_gb" {
   description = "Disk size for PostgreSQL in GB (30 GB free tier)"
   type        = number
@@ -486,11 +492,7 @@ variable "enable_postgres_monitoring" {
 # dbt Configuration
 # ====================================
 
-variable "dbt_schedule" {
-  description = "Cron expression for scheduled dbt runs (UTC). Default: 2 AM daily (0 2 * * *)"
-  type        = string
-  default     = "0 2 * * *"
-}
+
 
 variable "dbt_enabled" {
   description = "Enable dbt module deployment and scheduling"

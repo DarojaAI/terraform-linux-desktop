@@ -666,3 +666,87 @@ data "google_compute_default_service_account" "default" {}
 data "google_secret_manager_secret_version" "postgres_host" {
   secret = google_secret_manager_secret.postgres_host.id
 }
+
+# =============================================================================
+# DBT Schema Management Module
+# =============================================================================
+# Uses gcp-dbt-terraform to containerize and orchestrate dbt jobs
+# Builds Docker image with dev-nexus dbt models + gcp-dbt-terraform template
+# Deploys as Cloud Run Job with VPC networking to PostgreSQL
+# =============================================================================
+
+module "dbt_runner" {
+  source = "git::https://github.com/DarojaAI/gcp-dbt-terraform.git//modules/dbt-runner"
+
+  project_id  = var.project_id
+  region      = var.region
+  environment = var.environment
+  repo_prefix = "dev-nexus"
+
+  # Database Configuration
+  postgres_host            = module.postgres.internal_ip
+  postgres_port            = 5432
+  postgres_db              = local.postgres_db
+  postgres_user            = local.postgres_user
+  postgres_password_secret = google_secret_manager_secret.postgres_password.id
+
+  # Network Configuration
+  network_id    = module.vpc_egress.vpc_id
+  subnetwork_id = module.vpc_egress.subnet_id
+
+  # dbt Configuration
+  dbt_image_uri     = "us-central1-docker.pkg.dev/${var.project_id}/dev-nexus/dev-nexus-dbt:latest"
+  dbt_schema_prefix = "dev_nexus"
+  dbt_target        = var.environment
+
+  # Workload Identity Federation for GitHub Actions
+  wif_service_account = google_service_account.dbt_runner.email
+
+  # Tags and labels
+  labels = var.labels
+
+  depends_on = [
+    module.vpc_egress,
+    module.postgres,
+    google_service_account.dbt_runner,
+    google_artifact_registry_repository.dev_nexus
+  ]
+}
+
+# DBT Runner Service Account
+resource "google_service_account" "dbt_runner" {
+  account_id   = "dev-nexus-${var.environment}-dbt"
+  display_name = "dev-nexus ${var.environment} dbt runner"
+  description  = "Service account for dbt schema management jobs"
+}
+
+# Grant Secret Manager access for database credentials
+resource "google_secret_manager_secret_iam_member" "dbt_postgres_password" {
+  secret_id = google_secret_manager_secret.postgres_password.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.dbt_runner.email}"
+}
+
+# Grant Artifact Registry access for dbt Docker image
+resource "google_artifact_registry_repository_iam_member" "dbt_runner_reader" {
+  location   = var.region
+  repository = google_artifact_registry_repository.dev_nexus.name
+  role       = "roles/artifactregistry.reader"
+  member     = "serviceAccount:${google_service_account.dbt_runner.email}"
+}
+
+# Output dbt job details
+output "dbt_job_name" {
+  description = "Cloud Run Job name for dbt schema management"
+  value       = module.dbt_runner.job_name
+}
+
+output "dbt_service_account_email" {
+  description = "Service account email for dbt runner"
+  value       = google_service_account.dbt_runner.email
+}
+
+output "dbt_trigger_command" {
+  description = "Command to manually trigger dbt schema management job"
+  value       = "gcloud run jobs execute ${module.dbt_runner.job_name} --region ${var.region}"
+}
