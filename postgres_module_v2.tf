@@ -1,5 +1,5 @@
 # =============================================================================
-# PostgreSQL Module v2 - Using gcp-postgres-terraform v1.28
+# PostgreSQL Module v2 - Using gcp-postgres-terraform 3.0.1
 # =============================================================================
 # This module handles:
 # - PostgreSQL VM on Compute Engine with pgvector
@@ -10,7 +10,7 @@
 # =============================================================================
 
 module "postgres" {
-  source = "git::https://github.com/DarojaAI/gcp-postgres-terraform.git//terraform?ref=main"
+  source = "git::https://github.com/DarojaAI/gcp-postgres-terraform.git//terraform?ref=v3.0.1"
 
   # Required inputs
   project_id           = var.project_id
@@ -22,6 +22,9 @@ module "postgres" {
   # Use existing VPC from vpc_egress module
   vpc_name    = module.vpc_egress.vpc_name
   subnet_name = module.vpc_egress.subnet_name
+  network_id  = module.vpc_egress.vpc_id
+  subnet_id   = module.vpc_egress.subnet_id
+  subnet_cidr = module.vpc_egress.subnet_cidr
 
   # PostgreSQL configuration
   postgres_version = var.postgres_version
