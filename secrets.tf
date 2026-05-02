@@ -15,9 +15,6 @@ resource "google_secret_manager_secret" "postgres_password" {
   labels = var.labels
 
   depends_on = [google_project_service.secretmanager]
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 # Secret version managed via Terraform variable
@@ -44,9 +41,6 @@ resource "google_secret_manager_secret" "postgres_user" {
   labels = var.labels
 
   depends_on = [google_project_service.secretmanager]
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 # Version for postgres_user
@@ -65,9 +59,6 @@ resource "google_secret_manager_secret" "postgres_db" {
   labels = var.labels
 
   depends_on = [google_project_service.secretmanager]
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 # Version for postgres_db
@@ -88,9 +79,6 @@ resource "google_secret_manager_secret" "postgres_host" {
   labels = var.labels
 
   depends_on = [google_project_service.secretmanager]
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 # Version for postgres_host (internal IP from module)
