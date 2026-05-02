@@ -660,12 +660,6 @@ data "google_project" "project" {
 
 data "google_compute_default_service_account" "default" {}
 
-# Data source to read secret version for trigger
-# This triggers Cloud Run redeploy when secret version changes
-data "google_secret_manager_secret_version" "postgres_host" {
-  secret = google_secret_manager_secret.postgres_host.id
-}
-
 # =============================================================================
 # DBT Schema Management Module
 # =============================================================================
