@@ -381,8 +381,7 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
         value_source {
           secret_key_ref {
             secret = google_secret_manager_secret.postgres_host.secret_id
-            # Use dynamic version from data source - triggers redeploy when secret updates
-            version = data.google_secret_manager_secret_version.postgres_host.version
+            version = "latest"
           }
         }
       }
@@ -676,7 +675,7 @@ data "google_secret_manager_secret_version" "postgres_host" {
 # =============================================================================
 
 module "dbt_runner" {
-  source = "git::https://github.com/DarojaAI/gcp-dbt-terraform.git//modules/dbt-runner"
+  source = "git::https://github.com/DarojaAI/gcp-dbt-terraform.git//modules/dbt-runner?ref=v1.1.0"
 
   project_id  = var.project_id
   region      = var.region
