@@ -333,6 +333,12 @@ variable "alert_notification_channels" {
   default     = []
 }
 
+variable "monitoring_alert_email" {
+  description = "Email address for monitoring alerts (used in prod.tfvars)"
+  type        = string
+  default     = ""
+}
+
 variable "error_rate_threshold" {
   description = "Error rate threshold for alerting (percentage)"
   type        = number
