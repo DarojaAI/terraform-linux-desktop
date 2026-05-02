@@ -10,7 +10,7 @@
 # =============================================================================
 
 module "postgres" {
-  source = "git::https://github.com/DarojaAI/gcp-postgres-terraform.git//terraform?ref=v1.28"
+  source = "git::https://github.com/DarojaAI/gcp-postgres-terraform.git//terraform?ref=main"
 
   # Required inputs
   project_id           = var.project_id
