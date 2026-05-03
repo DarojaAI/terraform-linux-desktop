@@ -41,26 +41,14 @@ module "postgres" {
   vpc_connector_min_instances = 2
   vpc_connector_max_instances = 10
 
-  # Firewall: GitHub Actions IPs
-  allow_ssh_from_cidrs = concat(
-    jsondecode(data.http.github_actions_ips.response_body).actions,
-    []
-  )
+  # SSH from internet disabled — use IAP tunnel for access
+  allow_ssh_from_cidrs = []
 
   # Disable monitoring dashboard (causes IAM permission errors in CI/CD)
   enable_monitoring = false
 
   # Depend on VPC module so it's created first
   depends_on = [module.vpc_egress]
-}
-
-# Fetch GitHub Actions runner IPs for firewall allowlisting
-data "http" "github_actions_ips" {
-  url = "https://api.github.com/meta"
-
-  request_headers = {
-    Accept = "application/vnd.github+json"
-  }
 }
 
 # NOTE: postgres module creates its own vpc_connector when vpc_name is not passed
