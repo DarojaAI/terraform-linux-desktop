@@ -11,6 +11,7 @@
 
 environment   = "prod"
 secret_prefix = "dev-nexus-prod"
+repo_nickname = "dev-nexus"
 
 # Frontend URL for OAuth callback
 # Set via GitHub Actions env variable PROD_FRONTEND_URL (enforced by InfrastructureContract)

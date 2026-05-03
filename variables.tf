@@ -54,7 +54,7 @@ variable "environment" {
 }
 
 variable "secret_prefix" {
-  description = "Prefix for secrets in Google Secret Manager (e.g., 'dev-nexus-dev', 'dev-nexus-prod'). Prevents collisions between environments."
+  description = "Prefix for secrets in Google Secret Manager (e.g., 'dev-nexus-dev', 'dev-nexus-prod'). Secrets are named as '{prefix}-{secret-name}' with all lowercase and hyphens (e.g., 'dev-nexus-prod-postgres-password'). Prevents collisions between environments."
   type        = string
 
   validation {
@@ -389,6 +389,12 @@ variable "postgres_machine_type" {
   }
 }
 
+variable "repo_nickname" {
+  description = "Repository nickname (kebab-case, e.g., 'dev-nexus'). Maps to GitHub Actions repo variable REPO_NICKNAME. Used to derive dbt_schema_prefix by converting '-' to '_' for PostgreSQL schema naming."
+  type        = string
+  default     = "dev-nexus"
+}
+
 variable "dbt_schedule" {
   description = "Cron schedule for dbt schema management jobs (Cloud Scheduler)"
   type        = string
@@ -430,7 +436,7 @@ variable "postgres_db_user" {
 }
 
 variable "postgres_db_password" {
-  description = "PostgreSQL database password"
+  description = "PostgreSQL database password. Stored in Secret Manager as '{secret_prefix}-postgres-password' (e.g., 'dev-nexus-prod-postgres-password')."
   type        = string
   sensitive   = true
 }

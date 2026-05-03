@@ -6,7 +6,7 @@
 # The values are managed by terraform and updated via CI/CD
 
 resource "google_secret_manager_secret" "postgres_password" {
-  secret_id = "${var.secret_prefix}_POSTGRES_PASSWORD"
+  secret_id = "${var.secret_prefix}-postgres-password"
 
   replication {
     auto {}
@@ -32,7 +32,7 @@ data "google_secret_manager_secret_version" "postgres_password" {
 }
 
 resource "google_secret_manager_secret" "postgres_user" {
-  secret_id = "${var.secret_prefix}_POSTGRES_USER"
+  secret_id = "${var.secret_prefix}-postgres-user"
 
   replication {
     auto {}
@@ -50,7 +50,7 @@ resource "google_secret_manager_secret_version" "postgres_user" {
 }
 
 resource "google_secret_manager_secret" "postgres_db" {
-  secret_id = "${var.secret_prefix}_POSTGRES_DB"
+  secret_id = "${var.secret_prefix}-postgres-db"
 
   replication {
     auto {}
@@ -70,7 +70,7 @@ resource "google_secret_manager_secret_version" "postgres_db" {
 # Store PostgreSQL host IP in Secret Manager
 # This ensures Cloud Run always gets the correct internal IP
 resource "google_secret_manager_secret" "postgres_host" {
-  secret_id = "${var.secret_prefix}_POSTGRES_HOST"
+  secret_id = "${var.secret_prefix}-postgres-host"
 
   replication {
     auto {}

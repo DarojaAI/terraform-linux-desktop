@@ -10,6 +10,7 @@
 
 environment   = "dev"
 secret_prefix = "dev-nexus-dev"
+repo_nickname = "dev-nexus"
 
 # ====================================
 # GCP Configuration

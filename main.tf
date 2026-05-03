@@ -7,7 +7,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 7.0"
+      version = ">= 5.0, < 8.0"
     }
   }
 
@@ -72,7 +72,7 @@ resource "google_artifact_registry_repository_iam_member" "github_actions_writer
 
 # Create secrets in Secret Manager (prefixed per environment to prevent collisions)
 resource "google_secret_manager_secret" "github_token" {
-  secret_id = "${var.secret_prefix}_GITHUB_TOKEN"
+  secret_id = "${var.secret_prefix}-github-token"
 
   replication {
     auto {}
@@ -93,7 +93,7 @@ resource "google_secret_manager_secret_version" "github_token" {
 
 # GitHub OAuth secrets
 resource "google_secret_manager_secret" "github_client_id" {
-  secret_id = "${var.secret_prefix}_GITHUB_CLIENT_ID"
+  secret_id = "${var.secret_prefix}-github-client-id"
 
   replication {
     auto {}
@@ -113,7 +113,7 @@ resource "google_secret_manager_secret_version" "github_client_id" {
 }
 
 resource "google_secret_manager_secret" "github_client_secret" {
-  secret_id = "${var.secret_prefix}_GITHUB_CLIENT_SECRET"
+  secret_id = "${var.secret_prefix}-github-client-secret"
 
   replication {
     auto {}
@@ -134,7 +134,7 @@ resource "google_secret_manager_secret_version" "github_client_secret" {
 
 # JWT secret for token signing
 resource "google_secret_manager_secret" "jwt_secret" {
-  secret_id = "${var.secret_prefix}_JWT_SECRET"
+  secret_id = "${var.secret_prefix}-jwt-secret"
 
   replication {
     auto {}
@@ -154,7 +154,7 @@ resource "google_secret_manager_secret_version" "jwt_secret" {
 }
 
 resource "google_secret_manager_secret" "anthropic_api_key" {
-  secret_id = "${var.secret_prefix}_ANTHROPIC_API_KEY"
+  secret_id = "${var.secret_prefix}-anthropic-api-key"
 
   replication {
     auto {}
@@ -176,7 +176,7 @@ resource "google_secret_manager_secret_version" "anthropic_api_key" {
 # LangSmith API Key (optional - only created if API key is provided)
 resource "google_secret_manager_secret" "langsmith_api_key" {
   count     = 1 # Always created (empty if not used)
-  secret_id = "${var.secret_prefix}_LANGSMITH_API_KEY"
+  secret_id = "${var.secret_prefix}-langsmith-api-key"
 
   replication {
     auto {}
@@ -198,7 +198,7 @@ resource "google_secret_manager_secret_version" "langsmith_api_key" {
 # External A2A Agent Tokens (always created with count=1 for state compatibility)
 resource "google_secret_manager_secret" "pattern_miner_token" {
   count     = 1
-  secret_id = "${var.secret_prefix}_PATTERN_MINER_TOKEN"
+  secret_id = "${var.secret_prefix}-pattern-miner-token"
 
   replication {
     auto {}
@@ -219,7 +219,7 @@ resource "google_secret_manager_secret_version" "pattern_miner_token" {
 
 resource "google_secret_manager_secret" "action_agent_token" {
   count     = 1
-  secret_id = "${var.secret_prefix}_ACTION_AGENT_TOKEN"
+  secret_id = "${var.secret_prefix}-action-agent-token"
 
   replication {
     auto {}
@@ -247,7 +247,7 @@ resource "google_secret_manager_secret_iam_member" "action_agent_token_access" {
 
 resource "google_secret_manager_secret" "orchestrator_token" {
   count     = 1
-  secret_id = "${var.secret_prefix}_ORCHESTRATOR_TOKEN"
+  secret_id = "${var.secret_prefix}-orchestrator-token"
 
   replication {
     auto {}
@@ -729,7 +729,7 @@ module "dbt_runner" {
   project_id  = var.project_id
   region      = var.region
   environment = var.environment
-  repo_prefix = "dev-nexus"
+  repo_prefix = var.repo_nickname
 
   # Database Configuration
   postgres_host            = module.postgres.internal_ip
@@ -743,8 +743,9 @@ module "dbt_runner" {
   subnetwork_id = module.vpc_egress.subnet_id
 
   # dbt Configuration
+  # dbt_schema_prefix is derived from repo_nickname: "dev-nexus" → "dev_nexus" (PostgreSQL schema naming)
   dbt_image_uri     = "us-central1-docker.pkg.dev/${var.project_id}/dev-nexus/dev-nexus-dbt:latest"
-  dbt_schema_prefix = "dev_nexus"
+  dbt_schema_prefix = replace(var.repo_nickname, "-", "_")
   dbt_target        = var.environment
 
   # Workload Identity Federation for GitHub Actions

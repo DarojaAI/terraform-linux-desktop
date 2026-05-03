@@ -514,10 +514,31 @@ anthropic_api_key = "your-actual-key"        # Replace before apply
 postgres_db_password = "your-actual-password" # Replace before apply
 
 # Terraform will:
-# 1. Create secrets in Secret Manager (dev-nexus-{env}_* naming)
+# 1. Create secrets in Secret Manager (dev-nexus-{env}-{secret-name} naming, e.g., dev-nexus-prod-postgres-password)
 # 2. Inject into Cloud Run service
 # 3. Never expose in state files
 ```
+
+**Secret Naming Convention:**
+All secrets follow the pattern: `{secret_prefix}-{secret-name}` with all lowercase and hyphens.
+
+| Secret | Terraform Variable | Secret Manager Name (example) |
+|---------|---------------------|----------------------------|
+| GitHub Token | `github_token` | `dev-nexus-prod-github-token` |
+| Anthropic API Key | `anthropic_api_key` | `dev-nexus-prod-anthropic-api-key` |
+| JWT Secret | `jwt_secret` | `dev-nexus-prod-jwt-secret` |
+| PostgreSQL Password | `postgres_db_password` | `dev-nexus-prod-postgres-password` |
+| PostgreSQL User | `postgres_db_user` | `dev-nexus-prod-postgres-user` |
+| PostgreSQL DB | `postgres_db_name` | `dev-nexus-prod-postgres-db` |
+| PostgreSQL Host | (module output) | `dev-nexus-prod-postgres-host` |
+| GitHub Client ID | `github_client_id` | `dev-nexus-prod-github-client-id` |
+| GitHub Client Secret | `github_client_secret` | `dev-nexus-prod-github-client-secret` |
+| LangSmith API Key | `langsmith_api_key` | `dev-nexus-prod-langsmith-api-key` |
+| Pattern Miner Token | `pattern_miner_token` | `dev-nexus-prod-pattern-miner-token` |
+| Action Agent Token | `action_agent_token` | `dev-nexus-prod-action-agent-token` |
+| Orchestrator Token | `orchestrator_token` | `dev-nexus-prod-orchestrator-token` |
+
+**Note:** This is a breaking change from the previous underscore-based naming. See `SECRET_MIGRATION.md` for migration steps.
 
 **Do not use environment variables:**
 ```bash

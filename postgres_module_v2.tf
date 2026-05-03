@@ -16,7 +16,7 @@ module "postgres" {
   project_id           = var.project_id
   postgres_db_password = var.postgres_db_password
   instance_name        = "dev-nexus-pg"
-  repo_prefix          = "dev-nexus"
+  repo_prefix          = var.repo_nickname
   environment          = var.environment
 
   # Use existing VPC from vpc_egress module
