@@ -86,6 +86,7 @@ resource "google_secret_manager_secret" "github_token" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "github_token" {
+  count       = var.github_token != "" ? 1 : 0
   secret      = google_secret_manager_secret.github_token.id
   secret_data = var.github_token
 }
@@ -106,6 +107,7 @@ resource "google_secret_manager_secret" "github_client_id" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "github_client_id" {
+  count       = var.github_client_id != "" ? 1 : 0
   secret      = google_secret_manager_secret.github_client_id.id
   secret_data = var.github_client_id
 }
@@ -125,6 +127,7 @@ resource "google_secret_manager_secret" "github_client_secret" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "github_client_secret" {
+  count       = var.github_client_secret != "" ? 1 : 0
   secret      = google_secret_manager_secret.github_client_secret.id
   secret_data = var.github_client_secret
 }
@@ -145,6 +148,7 @@ resource "google_secret_manager_secret" "jwt_secret" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "jwt_secret" {
+  count       = var.jwt_secret != "" ? 1 : 0
   secret      = google_secret_manager_secret.jwt_secret.id
   secret_data = var.jwt_secret
 }
@@ -164,6 +168,7 @@ resource "google_secret_manager_secret" "anthropic_api_key" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "anthropic_api_key" {
+  count       = var.anthropic_api_key != "" ? 1 : 0
   secret      = google_secret_manager_secret.anthropic_api_key.id
   secret_data = var.anthropic_api_key
 }
@@ -185,7 +190,7 @@ resource "google_secret_manager_secret" "langsmith_api_key" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "langsmith_api_key" {
-  count       = 1
+  count       = var.langsmith_api_key != "" ? 1 : 0
   secret      = google_secret_manager_secret.langsmith_api_key[0].id
   secret_data = var.langsmith_api_key
 }
@@ -207,7 +212,7 @@ resource "google_secret_manager_secret" "pattern_miner_token" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "pattern_miner_token" {
-  count       = 1
+  count       = var.pattern_miner_token != "" ? 1 : 0
   secret      = google_secret_manager_secret.pattern_miner_token[0].id
   secret_data = var.pattern_miner_token
 }
@@ -228,7 +233,7 @@ resource "google_secret_manager_secret" "action_agent_token" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "action_agent_token" {
-  count       = 1
+  count       = var.action_agent_token != "" ? 1 : 0
   secret      = google_secret_manager_secret.action_agent_token[0].id
   secret_data = var.action_agent_token
 }
@@ -256,7 +261,7 @@ resource "google_secret_manager_secret" "orchestrator_token" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "orchestrator_token" {
-  count       = 1
+  count       = var.orchestrator_token != "" ? 1 : 0
   secret      = google_secret_manager_secret.orchestrator_token[0].id
   secret_data = var.orchestrator_token
 }
@@ -321,9 +326,10 @@ resource "google_secret_manager_secret_iam_member" "orchestrator_token_access" {
 
 # Deploy Cloud Run service
 resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
-  name     = "pattern-discovery-agent"
-  location = var.region
-  ingress  = var.allow_unauthenticated ? "INGRESS_TRAFFIC_ALL" : "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
+  name                = "pattern-discovery-agent"
+  location            = var.region
+  ingress             = var.allow_unauthenticated ? "INGRESS_TRAFFIC_ALL" : "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
+  deletion_protection = false
 
   # Ensure all dependencies are ready before creating service
   depends_on = [
