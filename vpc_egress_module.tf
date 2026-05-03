@@ -6,9 +6,9 @@
 # =============================================================================
 
 module "vpc_egress" {
-  # Using master branch with allow_postgres=false to avoid firewall tag conflicts
-  # when used with gcp-postgres-terraform
-  source = "git::https://github.com/DarojaAI/gcp-vpc-egress-terraform.git//terraform"
+  # Using main branch (v1.2.1 tag baseline) with allow_postgres=false to avoid
+  # firewall tag conflicts when used with gcp-postgres-terraform
+  source = "git::https://github.com/DarojaAI/gcp-vpc-egress-terraform.git//terraform?ref=v1.2.1"
 
   project_id  = var.project_id
   region      = var.region
