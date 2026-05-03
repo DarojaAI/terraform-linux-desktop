@@ -47,6 +47,11 @@ module "postgres" {
   # Disable monitoring dashboard (causes IAM permission errors in CI/CD)
   enable_monitoring = false
 
+  # Cloud NAT is managed by vpc_egress module, not postgres module.
+  # Setting false prevents the postgres module's data source from looking up
+  # nat-dev-nexus-prod-vpc at plan time (which fails when NAT doesn't exist yet).
+  enable_cloud_nat = false
+
   # Depend on VPC module so it's created first
   depends_on = [module.vpc_egress]
 }
