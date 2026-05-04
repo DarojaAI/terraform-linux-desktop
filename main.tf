@@ -2,7 +2,7 @@
 # Deploys to Google Cloud Run with all required infrastructure
 
 terraform {
-  required_version = ">= 1.0"
+  required_version = "~> 1.15.0"
 
   required_providers {
     google = {
