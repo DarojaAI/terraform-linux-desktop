@@ -43,13 +43,10 @@ github_org             = "DarojaAI" # required when github_actions_scope = "orga
 # Secrets (Use Secret Manager in production!)
 # ====================================
 
-# IMPORTANT: Get actual values from Secret Manager:
-# gcloud secrets versions access latest --secret="dev-nexus-prod_GITHUB_TOKEN"
-github_token         = ""                                     # Set from Secret Manager
-github_client_id     = ""                                     # Set from Secret Manager
-github_client_secret = ""                                     # Set from Secret Manager
-anthropic_api_key    = ""                                     # Set from Secret Manager
-jwt_secret           = "prod-jwt-secret-placeholder-32chars!" # Set from Secret Manager (min 32 chars)
+# IMPORTANT: These secrets are injected via TF_VAR_* environment variables in CI.
+# Do NOT set them here — tfvars override env vars and would blank out the values.
+# github_token, github_client_id, github_client_secret, anthropic_api_key, jwt_secret
+# are all provided by the GitHub Actions prod environment secrets.
 # RESET: Generated new password on 2026-04-26 03:22 UTC
 postgres_db_password = "wBIYv1NWL4udEoSZSB7P"
 
