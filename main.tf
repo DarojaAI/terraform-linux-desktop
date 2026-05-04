@@ -86,9 +86,15 @@ resource "google_secret_manager_secret" "github_token" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "github_token" {
-  count       = var.github_token != "" ? 1 : 0
   secret      = google_secret_manager_secret.github_token.id
   secret_data = var.github_token
+
+  lifecycle {
+    precondition {
+      condition     = var.github_token != ""
+      error_message = "TF_VAR_github_token (VM_GITHUB_TOKEN secret) must not be empty. Cloud Run cannot start without a GitHub token."
+    }
+  }
 }
 
 # GitHub OAuth secrets
@@ -107,9 +113,15 @@ resource "google_secret_manager_secret" "github_client_id" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "github_client_id" {
-  count       = var.github_client_id != "" ? 1 : 0
   secret      = google_secret_manager_secret.github_client_id.id
   secret_data = var.github_client_id
+
+  lifecycle {
+    precondition {
+      condition     = var.github_client_id != ""
+      error_message = "TF_VAR_github_client_id (GH_CLIENT_ID secret) must not be empty."
+    }
+  }
 }
 
 resource "google_secret_manager_secret" "github_client_secret" {
@@ -127,9 +139,15 @@ resource "google_secret_manager_secret" "github_client_secret" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "github_client_secret" {
-  count       = var.github_client_secret != "" ? 1 : 0
   secret      = google_secret_manager_secret.github_client_secret.id
   secret_data = var.github_client_secret
+
+  lifecycle {
+    precondition {
+      condition     = var.github_client_secret != ""
+      error_message = "TF_VAR_github_client_secret (GH_CLIENT_SECRET secret) must not be empty."
+    }
+  }
 }
 
 # JWT secret for token signing
@@ -148,9 +166,15 @@ resource "google_secret_manager_secret" "jwt_secret" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "jwt_secret" {
-  count       = var.jwt_secret != "" ? 1 : 0
   secret      = google_secret_manager_secret.jwt_secret.id
   secret_data = var.jwt_secret
+
+  lifecycle {
+    precondition {
+      condition     = var.jwt_secret != ""
+      error_message = "TF_VAR_jwt_secret (JWT_SECRET secret) must not be empty."
+    }
+  }
 }
 
 resource "google_secret_manager_secret" "anthropic_api_key" {
@@ -168,9 +192,15 @@ resource "google_secret_manager_secret" "anthropic_api_key" {
 # SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "anthropic_api_key" {
-  count       = var.anthropic_api_key != "" ? 1 : 0
   secret      = google_secret_manager_secret.anthropic_api_key.id
   secret_data = var.anthropic_api_key
+
+  lifecycle {
+    precondition {
+      condition     = var.anthropic_api_key != ""
+      error_message = "TF_VAR_anthropic_api_key (CLAUDE_API_KEY secret) must not be empty."
+    }
+  }
 }
 
 # LangSmith API Key (optional - only created if API key is provided)
