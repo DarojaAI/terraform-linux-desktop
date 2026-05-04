@@ -1,5 +1,5 @@
 # =============================================================================
-# PostgreSQL Module v2 - Using gcp-postgres-terraform 3.0.1
+# PostgreSQL Module v2 - Using gcp-postgres-terraform v4.0.2
 # =============================================================================
 # This module handles:
 # - PostgreSQL VM on Compute Engine with pgvector
@@ -10,7 +10,7 @@
 # =============================================================================
 
 module "postgres" {
-  source = "git::https://github.com/DarojaAI/gcp-postgres-terraform.git//terraform?ref=v3.0.1"
+  source = "git::https://github.com/DarojaAI/gcp-postgres-terraform.git//terraform?ref=v4.0.2"
 
   # Required inputs
   project_id           = var.project_id
@@ -30,7 +30,7 @@ module "postgres" {
   postgres_version = var.postgres_version
   postgres_db_name = "pattern_discovery"
   postgres_db_user = "app_user"
-  machine_type     = var.postgres_machine_type
+  machine_type     = local.env_contract.postgres_machine_type
 
   # Region
   region = var.region

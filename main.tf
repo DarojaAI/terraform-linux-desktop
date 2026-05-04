@@ -83,8 +83,6 @@ resource "google_secret_manager_secret" "github_token" {
   depends_on = [google_project_service.secretmanager]
 }
 
-# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
-
 resource "google_secret_manager_secret_version" "github_token" {
   secret      = google_secret_manager_secret.github_token.id
   secret_data = var.github_token
@@ -110,8 +108,6 @@ resource "google_secret_manager_secret" "github_client_id" {
   depends_on = [google_project_service.secretmanager]
 }
 
-# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
-
 resource "google_secret_manager_secret_version" "github_client_id" {
   secret      = google_secret_manager_secret.github_client_id.id
   secret_data = var.github_client_id
@@ -135,8 +131,6 @@ resource "google_secret_manager_secret" "github_client_secret" {
 
   depends_on = [google_project_service.secretmanager]
 }
-
-# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "github_client_secret" {
   secret      = google_secret_manager_secret.github_client_secret.id
@@ -163,8 +157,6 @@ resource "google_secret_manager_secret" "jwt_secret" {
   depends_on = [google_project_service.secretmanager]
 }
 
-# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
-
 resource "google_secret_manager_secret_version" "jwt_secret" {
   secret      = google_secret_manager_secret.jwt_secret.id
   secret_data = var.jwt_secret
@@ -189,8 +181,6 @@ resource "google_secret_manager_secret" "anthropic_api_key" {
   depends_on = [google_project_service.secretmanager]
 }
 
-# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
-
 resource "google_secret_manager_secret_version" "anthropic_api_key" {
   secret      = google_secret_manager_secret.anthropic_api_key.id
   secret_data = var.anthropic_api_key
@@ -203,9 +193,9 @@ resource "google_secret_manager_secret_version" "anthropic_api_key" {
   }
 }
 
-# LangSmith API Key (optional - only created if API key is provided)
+# LangSmith API Key (optional)
 resource "google_secret_manager_secret" "langsmith_api_key" {
-  count     = 1 # Always created (empty if not used)
+  count     = 1
   secret_id = "${var.secret_prefix}-langsmith-api-key"
 
   replication {
@@ -217,15 +207,13 @@ resource "google_secret_manager_secret" "langsmith_api_key" {
   depends_on = [google_project_service.secretmanager]
 }
 
-# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
-
 resource "google_secret_manager_secret_version" "langsmith_api_key" {
   count       = var.langsmith_api_key != "" ? 1 : 0
   secret      = google_secret_manager_secret.langsmith_api_key[0].id
   secret_data = var.langsmith_api_key
 }
 
-# External A2A Agent Tokens (always created with count=1 for state compatibility)
+# External A2A Agent Tokens (optional)
 resource "google_secret_manager_secret" "pattern_miner_token" {
   count     = 1
   secret_id = "${var.secret_prefix}-pattern-miner-token"
@@ -238,8 +226,6 @@ resource "google_secret_manager_secret" "pattern_miner_token" {
 
   depends_on = [google_project_service.secretmanager]
 }
-
-# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "pattern_miner_token" {
   count       = var.pattern_miner_token != "" ? 1 : 0
@@ -259,8 +245,6 @@ resource "google_secret_manager_secret" "action_agent_token" {
 
   depends_on = [google_project_service.secretmanager]
 }
-
-# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "action_agent_token" {
   count       = var.action_agent_token != "" ? 1 : 0
@@ -287,8 +271,6 @@ resource "google_secret_manager_secret" "orchestrator_token" {
 
   depends_on = [google_project_service.secretmanager]
 }
-
-# SecretVersion managed via Cloud Shell — see scripts/setup-gcp-secrets.sh
 
 resource "google_secret_manager_secret_version" "orchestrator_token" {
   count       = var.orchestrator_token != "" ? 1 : 0
@@ -378,8 +360,8 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
   template {
     scaling {
-      min_instance_count = var.min_instances
-      max_instance_count = var.max_instances
+      min_instance_count = local.env_contract.cloud_run_min_scale
+      max_instance_count = local.env_contract.cloud_run_max_scale
     }
 
     timeout = "${var.timeout_seconds}s"
@@ -402,11 +384,11 @@ resource "google_cloud_run_v2_service" "pattern_discovery_agent" {
 
       resources {
         limits = {
-          cpu    = var.cpu
-          memory = var.memory
+          cpu    = local.env_contract.cloud_run_cpu
+          memory = local.env_contract.cloud_run_memory
         }
 
-        cpu_idle = var.cpu_always_allocated
+        cpu_idle = local.env_contract.cpu_always_allocated
       }
 
       env {
