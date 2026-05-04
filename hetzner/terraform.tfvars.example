@@ -1,0 +1,24 @@
+# =============================================================================
+# Hetzner Terraform - Example Variables
+# =============================================================================
+# Copy this to terraform.tfvars and fill in your values
+# DO NOT commit terraform.tfvars to version control
+
+# Required - get from Hetzner Console → API Tokens
+hcloud_token = "your-api-token-here"
+
+# Server configuration
+server_name  = "linux-desktop"
+server_type  = "cpx41"      # 4 vCPU, 8GB RAM - good for desktop
+location     = "fsn1"       # Falkenstein, Germany
+image        = "ubuntu-22.04"
+
+# SSH keys - add your public key to Hetzner Console first
+# Then pass either the key ID (number) or name
+ssh_keys = ["my-ssh-key"]
+
+# Optional labels
+labels = {
+  project    = "linux-desktop-seed"
+  environment = "prod"
+}
