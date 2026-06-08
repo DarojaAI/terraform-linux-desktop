@@ -1,0 +1,6 @@
+{
+  "name": "terraform-linux-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Terraform module for Linux desktop infrastructure on GCP"
+}
