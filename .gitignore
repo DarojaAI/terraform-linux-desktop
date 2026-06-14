@@ -5,3 +5,11 @@
 *.tfstate.*
 *.tfvars
 !*.tfvars.example
+
+# Local config with secrets
+.gitconfig.local
+*.env
+.env
+
+# Local-only documentation (operator notes, server IPs, etc.)
+docs-private/
